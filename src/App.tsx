@@ -423,7 +423,7 @@ function App() {
                         },
                         body: JSON.stringify({
                           user_id: memberId,
-                          email: email,
+                          email: fd.get('email'),
                           legal_name: fd.get('name'),
                           class_grade: fd.get('class'),
                           github_handle: fd.get('github'),
@@ -442,6 +442,10 @@ function App() {
                                 <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">Class_Grade</label>
                                 <input name="class" className="form-input" required placeholder="10-C" />
                             </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">Email</label>
+                            <input type="email" name="email" className="form-input" required placeholder="felix@example.com" />
                         </div>
                         <div className="flex flex-col gap-2">
                             <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">GitHub_Handle</label>
