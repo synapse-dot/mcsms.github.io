@@ -12,7 +12,7 @@ create table if not exists public.projects (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
   title text not null,
-  desc text not null,
+  description text not null,
   status text not null check (status in ('stable','research')),
   version text not null default '1.0.0',
   problem_statement text not null,
