@@ -327,29 +327,44 @@ function App() {
             </div>
             <div className="bg-slate-900 p-8 rounded-2xl border border-white/10 text-white">
               <h3 className="text-xl font-bold mb-6">Manifest Interest</h3>
-              <form className="space-y-4" onSubmit={e => e.preventDefault()}>
+              <form className="space-y-4" onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const name = formData.get('name');
+                const github = formData.get('github');
+                const domain = formData.get('domain');
+                
+                const body = `### New Member Manifest\n\n**Name:** ${name}\n**GitHub:** @${github}\n**Interest Area:** ${domain}\n\n---\n*Sent via mcsms.github.io portal*`;
+                const title = `Access Request: ${name} (@${github})`;
+                const url = `https://github.com/synapse-dot/mcsms.github.io/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+                
+                window.open(url, '_blank');
+              }}>
                 <div className="grid md-grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs mono text-slate-500">NAME</label>
-                    <input type="text" className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none" placeholder="Felix Wayne" />
+                    <input name="name" required type="text" className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none" placeholder="Felix Wayne" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-xs mono text-slate-500">GITHUB_USER</label>
-                    <input type="text" className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none" placeholder="synapse-dot" />
+                    <input name="github" required type="text" className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none" placeholder="synapse-dot" />
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-xs mono text-slate-500">DOMAIN_OF_INTEREST</label>
-                  <select className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none">
+                  <select name="domain" className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none">
                     <option>Physics Simulation</option>
                     <option>Biological Systems</option>
                     <option>Financial Modeling</option>
                     <option>Climate Systems</option>
                   </select>
                 </div>
-                <button className="btn-primary w-full justify-center mt-4">
-                  Submit Manifest
+                <button type="submit" className="btn-primary w-full justify-center mt-4">
+                  Submit Manifest <ChevronRight size={18} />
                 </button>
+                <p className="text-[10px] text-slate-500 text-center mt-4 mono uppercase">
+                  Note: This will open a GitHub Issue to log your request.
+                </p>
               </form>
             </div>
           </div>
