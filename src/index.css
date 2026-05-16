@@ -102,6 +102,18 @@ a {
   letter-spacing: 0.05em;
 }
 
+.status-tag {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+
+.status-stable { color: #10b981; }
+.status-research { color: #f59e0b; }
+
 .btn-primary {
   background: var(--accent);
   color: var(--bg-dark);
@@ -113,7 +125,10 @@ a {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  transition: transform 0.2s;
 }
+
+.btn-primary:hover { transform: scale(1.02); }
 
 .btn-secondary {
   background: var(--bg-slate-800);
@@ -161,41 +176,76 @@ a {
 .bg-slate-800-half { background: rgba(30, 41, 59, 0.5); }
 .border-y { border-top: 1px solid #334155; border-bottom: 1px solid #334155; }
 
-/* Custom */
-.hero-title {
-  line-height: 1.1;
-  font-family: var(--mono-font);
+/* Onboarding Flow */
+.onboarding-card {
+  border-left: 4px solid var(--accent);
+  background: rgba(30, 41, 59, 0.5);
+  padding: 2rem;
+  border-radius: 0 1rem 1rem 0;
 }
 
-.learning-step {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.step-number {
-  flex-shrink: 0;
-  width: 2.5rem;
-  height: 2.5rem;
+.step-circle {
+  width: 3rem;
+  height: 3rem;
+  background: var(--accent);
+  color: var(--bg-dark);
   border-radius: 50%;
-  background: var(--bg-slate-800);
-  border: 1px solid #334155;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  color: var(--accent);
+  font-weight: 900;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
 }
 
-.stack-card {
-  background: var(--bg-slate-900);
-  padding: 1rem;
-  border-radius: 0.75rem;
+/* Modal / Detail View */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.modal-content {
+  background: var(--bg-slate-800);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 1.5rem;
   border: 1px solid #334155;
+  padding: 3rem;
+  position: relative;
 }
 
-.visibility-cta {
-  background: var(--accent);
-  color: var(--bg-dark);
-  padding: 4rem 0;
-  text-align: center;
+.close-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+/* Lab Archive Styling */
+.archive-entry {
+  font-family: var(--mono-font);
+  background: #000;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  color: #10b981;
+  border-left: 3px solid #10b981;
+}
+
+@media (max-width: 767px) {
+  .hide-mobile { display: none; }
+  .text-5xl { font-size: 2.5rem; }
+  .modal-content { padding: 1.5rem; }
 }
