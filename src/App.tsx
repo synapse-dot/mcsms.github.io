@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { 
   Atom, 
-  Code2, 
-  Cpu, 
   Globe, 
-  GraduationCap, 
-  LineChart, 
-  Rocket, 
   Terminal,
   ChevronRight,
   Database,

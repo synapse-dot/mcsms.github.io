@@ -1,12 +1,12 @@
 {
   "id": "physx",
-  "title": "PhysX Engine Prototype",
-  "desc": "Custom physics engine exploring N-body interactions and collision manifolds.",
-  "status": "research",
-  "version": "0.5.0-alpha",
-  "objective": "Develop a modular physics engine capable of handling elastic collisions and continuous force application.",
-  "observation": "Narrow-phase collision detection is the primary bottleneck in N-body simulations.",
-  "conclusion": "Implementing a GJK-based collision algorithm is necessary for non-spherical body interactions.",
+  "title": "Interactive Gravitational Lensing",
+  "desc": "An educational application simulating light-ray deflection by massive objects (black holes) using numerical integration.",
+  "status": "stable",
+  "version": "1.0.0",
+  "objective": "Simulate gravitational lensing by integrating small-angle light-ray deflections based on the point-mass formula: α = 4GM / (c² b).",
+  "observation": "Accumulated deflections produce recognizable lensing patterns and Einstein rings as light rays pass near massive objects.",
+  "conclusion": "Real-time integration of theoretical deflection formulas allows for interactive exploration of General Relativity effects in a pedagogical context.",
   "githubUrl": "https://github.com/synapse-dot/PhysX",
-  "tech": ["C++", "OpenGL", "Cmake"]
+  "tech": ["Python", "NumPy", "PyQt6", "Gravitational Lensing"]
 }
