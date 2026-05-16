@@ -5,8 +5,6 @@ import {
   ChevronRight,
   Users,
   X,
-  FlaskConical,
-  Box,
   Plus,
   ArrowRight,
   Code,
