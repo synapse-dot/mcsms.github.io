@@ -68,27 +68,27 @@ for select to authenticated
 using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'committee'));
 
 -- Public read access for archive content.
-create policy if not exists "projects public read" on public.projects
+create policy "projects public read" on public.projects
 for select to anon, authenticated using (true);
 
-create policy if not exists "project_reports public read" on public.project_reports
+create policy "project_reports public read" on public.project_reports
 for select to anon, authenticated using (true);
 
-create policy if not exists "sessions public read" on public.sessions
+create policy "sessions public read" on public.sessions
 for select to anon, authenticated using (true);
 
 -- Authenticated members can submit and view their own challenge submissions.
-create policy if not exists "submissions own read" on public.challenge_submissions
+create policy "submissions own read" on public.challenge_submissions
 for select to authenticated using (auth.uid() = user_id);
 
-create policy if not exists "submissions own insert" on public.challenge_submissions
+create policy "submissions own insert" on public.challenge_submissions
 for insert to authenticated with check (auth.uid() = user_id);
 
-create policy if not exists "submissions own update" on public.challenge_submissions
+create policy "submissions own update" on public.challenge_submissions
 for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Committee read access for all challenge submissions.
-create policy if not exists "committee read submissions" on public.challenge_submissions
+create policy "committee read submissions" on public.challenge_submissions
 for select to authenticated
 using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'committee'));
 
