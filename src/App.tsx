@@ -12,7 +12,10 @@ import {
   ExternalLink,
   Layers,
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  ShieldCheck,
+  Binary,
+  History as HistoryIcon
 } from 'lucide-react';
 
 interface Project {
@@ -278,7 +281,7 @@ function App() {
                  </div>
                  <div className="lab-card">
                     <div className="flex items-center gap-4 mb-8">
-                       <div className="bg-emerald-dim p-2 rounded-lg"><History size={20} className="text-emerald" /></div>
+                       <div className="bg-emerald-dim p-2 rounded-lg"><HistoryIcon size={20} className="text-emerald" /></div>
                        <h3 className="text-xl font-bold uppercase">History</h3>
                     </div>
                     <p className="text-muted text-xs leading-relaxed mb-6 italic">Last submission: Gravitational Lensing v1.0.0 (3 days ago)</p>
