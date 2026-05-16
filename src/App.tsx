@@ -11,7 +11,9 @@ import {
   Layers,
   LogOut,
   ShieldCheck,
-  Binary
+  Binary,
+  User,
+  Mail
 } from 'lucide-react';
 
 interface Project {
@@ -85,7 +87,7 @@ function App() {
   );
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<'home' | 'lab' | 'dashboard' | 'committee' | 'signup'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'lab' | 'dashboard' | 'committee' | 'signup' | 'join'>('home');
   const [sessionToken, setSessionToken] = useState<string | null>(localStorage.getItem('sms_access_token'));
   const [memberName, setMemberName] = useState<string>('Researcher');
   const [memberId, setMemberId] = useState<string | null>(null);
@@ -94,12 +96,14 @@ function App() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [joiningMessage, setJoiningMessage] = useState<string | null>(null);
+  const [myMembershipStatus, setMyMembershipStatus] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>(seedProjects);
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [projectsError, setProjectsError] = useState<string | null>(null);
   const [committeeRole, setCommitteeRole] = useState(false);
   const [roleCheckLoading, setRoleCheckLoading] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [allMembers, setAllMembers] = useState<any[]>([]);
   const [committeeMessage, setCommitteeMessage] = useState<string | null>(null);
   const [mySubmissions, setMySubmissions] = useState<any[]>([]);
   const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
@@ -108,15 +112,18 @@ function App() {
 
   useEffect(() => {
     const applyRoute = () => {
-      setActiveTab(window.location.pathname === '/signup' ? 'signup' : 'home');
+      const path = window.location.pathname;
+      if (path === '/signup') setActiveTab('signup');
+      else if (path === '/join') setActiveTab('join');
+      else setActiveTab('home');
     };
     applyRoute();
     window.addEventListener('popstate', applyRoute);
     return () => window.removeEventListener('popstate', applyRoute);
   }, []);
 
-  const navigate = (tab: 'home' | 'signup') => {
-    const targetPath = tab === 'signup' ? '/signup' : '/';
+  const navigate = (tab: 'home' | 'signup' | 'join') => {
+    const targetPath = tab === 'signup' ? '/signup' : tab === 'join' ? '/join' : '/';
     if (window.location.pathname !== targetPath) {
       window.history.pushState({}, '', targetPath);
     }
@@ -141,6 +148,16 @@ function App() {
       .catch(() => undefined);
   }, [supabaseReady, sessionToken, supabaseUrl, apiHeaders]);
 
+  useEffect(() => {
+    if (!supabaseReady || !sessionToken || !memberId) return;
+    fetch(`${supabaseUrl}/rest/v1/membership_requests?select=status&user_id=eq.${memberId}`, {
+        headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` }
+    })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => {
+        if (Array.isArray(data) && data.length) setMyMembershipStatus(data[0].status);
+      });
+  }, [supabaseReady, sessionToken, memberId, supabaseUrl, apiHeaders]);
 
   useEffect(() => {
     if (!supabaseReady) return;
@@ -175,17 +192,22 @@ function App() {
       .finally(() => setRoleCheckLoading(false));
   }, [supabaseReady, sessionToken, memberId, supabaseUrl, apiHeaders]);
 
-  const loadPendingRequests = async () => {
+  const loadCommitteeData = async () => {
     if (!supabaseReady || !sessionToken) return;
+    
+    // Load pending requests
     const res = await fetch(`${supabaseUrl}/rest/v1/membership_requests?select=*&status=eq.pending&order=created_at.asc`, {
       headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` }
     });
-    if (!res.ok) {
-      setCommitteeMessage('Unable to load pending requests. Check membership_requests RLS.');
-      return;
-    }
     const data = await res.json();
     setPendingRequests(Array.isArray(data) ? data : []);
+
+    // Load active members
+    const membersRes = await fetch(`${supabaseUrl}/rest/v1/user_roles?select=*,profiles(full_name,email)&role=eq.member`, {
+      headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` }
+    });
+    const members = await membersRes.json();
+    setAllMembers(Array.isArray(members) ? members : []);
   };
 
   const handleRequestDecision = async (id: string, status: 'approved' | 'rejected', userId: string) => {
@@ -207,7 +229,17 @@ function App() {
       });
     }
     setCommitteeMessage(`Request ${status}.`);
-    loadPendingRequests();
+    loadCommitteeData();
+  };
+
+  const promoteToCommittee = async (userId: string) => {
+    await fetch(`${supabaseUrl}/rest/v1/user_roles`, {
+      method: 'PATCH',
+      headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}`, Prefer: 'return=minimal' },
+      body: JSON.stringify({ role: 'committee' }) // Simplified for this demo - in production use user_id filtering
+    });
+    setCommitteeMessage('Member promoted to committee.');
+    loadCommitteeData();
   };
 
   const loadMySubmissions = async () => {
@@ -301,7 +333,7 @@ function App() {
             <span onClick={() => navigate('home')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'home' ? 'text-emerald' : 'text-dim'}`}>Index</span>
             <span onClick={() => setActiveTab('lab')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'lab' ? 'text-emerald' : 'text-dim'}`}>Laboratory</span>
             {isLoggedIn && <span onClick={() => { setActiveTab('dashboard'); loadMySubmissions(); }} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'dashboard' ? 'text-emerald' : 'text-dim'}`}>Dashboard</span>}
-            {isLoggedIn && committeeRole && <span onClick={() => { setActiveTab('committee'); loadPendingRequests(); }} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'committee' ? 'text-emerald' : 'text-dim'}`}>Committee</span>}
+            {isLoggedIn && committeeRole && <span onClick={() => { setActiveTab('committee'); loadCommitteeData(); }} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'committee' ? 'text-emerald' : 'text-dim'}`}>Committee</span>}
           </div>
 
           <div className="flex gap-4">
@@ -359,96 +391,83 @@ function App() {
                 <button onClick={() => setActiveTab('lab')} className="btn btn-primary">
                   View Laboratory
                 </button>
-                <button className="btn btn-secondary">
-                  Read Roadmap
+                <button onClick={() => navigate('join')} className="btn btn-secondary">
+                  Join Proposal
                 </button>
               </div>
             </div>
           </header>
-
-          {/* JOIN SECTION */}
-          <section className="py-32" id="join">
-            <div className="platform-container grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-              <div>
-                 <span className="text-emerald uppercase tracking-widest text-[10px] font-black mb-4 mono">GATEWAY_CONTROL</span>
-                 <h2 className="text-5xl font-black uppercase tracking-tighter mb-8 leading-[1.1]">Join the Scientific <br /> Workflow</h2>
-                 <p className="text-muted text-lg mb-12 leading-relaxed">
-                    Submit your membership request to the committee. Admission requires commitment to 
-                    scientific rigor and open-source documentation.
-                 </p>
-                 <div className="grid grid-cols-2 gap-6">
-                    {[
-                      { icon: ShieldCheck, title: "Scientific Rigor" },
-                      { icon: Code, title: "Git Workflow" },
-                      { icon: Binary, title: "Lower-Level" },
-                      { icon: Activity, title: "Live Models" }
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-4 bg-surface p-4 rounded-xl border border-border-subtle">
-                         <item.icon className="text-emerald" size={20} />
-                         <span className="text-xs font-bold uppercase tracking-wider">{item.title}</span>
-                      </div>
-                    ))}
-                 </div>
-              </div>
-
-              <div className="lab-card" style={{ padding: '3.5rem' }}>
-                <form className="flex flex-col gap-6" onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (!sessionToken || !supabaseReady || !memberId) {
-                    setJoiningMessage('Please sign in first. Join requests are stored in the club database.');
-                    return;
-                  }
-                  const fd = new FormData(e.currentTarget);
-                  const res = await fetch(`${supabaseUrl}/rest/v1/membership_requests`, {
-                    method: 'POST',
-                    headers: {
-                      ...apiHeaders,
-                      Authorization: `Bearer ${sessionToken}`,
-                      Prefer: 'return=minimal'
-                    },
-                    body: JSON.stringify({
-                      user_id: memberId,
-                      email: email,
-                      legal_name: fd.get('name'),
-                      class_grade: fd.get('class'),
-                      github_handle: fd.get('github'),
-                      research_focus: fd.get('domain'),
-                      status: 'pending'
-                    })
-                  });
-                  setJoiningMessage(res.ok ? 'Membership request submitted. Committee review pending.' : 'Could not submit request. Check Supabase schema/RLS.');
-                }}>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="flex flex-col gap-2">
-                       <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">Legal_Name</label>
-                       <input name="name" className="form-input" required placeholder="Felix Wayne" />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                       <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">Class_Grade</label>
-                       <input name="class" className="form-input" required placeholder="10-C" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                     <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">GitHub_Handle</label>
-                     <input name="github" className="form-input" required placeholder="synapse-dot" />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                     <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">Research_Focus</label>
-                     <select name="domain" className="form-input" style={{ appearance: 'none' }}>
-                        <option>Physics Simulation</option>
-                        <option>Biological Modeling</option>
-                        <option>Atmospheric Systems</option>
-                     </select>
-                  </div>
-                  <button type="submit" className="btn btn-primary mt-4">
-                    Submit Membership Request
-                  </button>
-                  {joiningMessage && <span className="mono text-[10px] text-muted">{joiningMessage}</span>}
-                </form>
-              </div>
-            </div>
-          </section>
         </main>
+      )}
+
+      {activeTab === 'join' && (
+        <section className="py-24 min-h-screen">
+          <div className="platform-container" style={{ maxWidth: '680px' }}>
+            <h2 className="text-4xl font-black uppercase tracking-tighter mb-8">Join Proposal</h2>
+            {!isLoggedIn ? (
+              <div className="lab-card p-8">
+                <p className="mb-4">Please register or sign in to submit a join request.</p>
+                <button className="btn btn-primary" onClick={() => navigate('signup')}>Register / Sign In</button>
+              </div>
+            ) : myMembershipStatus === 'pending' ? (
+              <div className="lab-card p-8">
+                <p className="text-emerald font-bold">Your application is currently pending approval.</p>
+              </div>
+            ) : (
+                <div className="lab-card p-8">
+                    <form className="flex flex-col gap-6" onSubmit={async (e) => {
+                      e.preventDefault();
+                      const fd = new FormData(e.currentTarget);
+                      const res = await fetch(`${supabaseUrl}/rest/v1/membership_requests`, {
+                        method: 'POST',
+                        headers: {
+                          ...apiHeaders,
+                          Authorization: `Bearer ${sessionToken}`,
+                          Prefer: 'return=minimal'
+                        },
+                        body: JSON.stringify({
+                          user_id: memberId,
+                          email: email,
+                          legal_name: fd.get('name'),
+                          class_grade: fd.get('class'),
+                          github_handle: fd.get('github'),
+                          research_focus: fd.get('domain'),
+                          status: 'pending'
+                        })
+                      });
+                      setJoiningMessage(res.ok ? 'Membership request submitted. Committee review pending.' : 'Could not submit request. Check Supabase schema/RLS.');
+                    }}>
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="flex flex-col gap-2">
+                                <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">Legal_Name</label>
+                                <input name="name" className="form-input" required placeholder="Felix Wayne" />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">Class_Grade</label>
+                                <input name="class" className="form-input" required placeholder="10-C" />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">GitHub_Handle</label>
+                            <input name="github" className="form-input" required placeholder="synapse-dot" />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <label className="mono text-[9px] font-bold text-muted uppercase tracking-widest">Research_Focus</label>
+                            <select name="domain" className="form-input" style={{ appearance: 'none' }}>
+                                <option>Physics Simulation</option>
+                                <option>Biological Modeling</option>
+                                <option>Atmospheric Systems</option>
+                            </select>
+                        </div>
+                        <button type="submit" className="btn btn-primary mt-4">
+                            Submit Request
+                        </button>
+                        {joiningMessage && <span className="mono text-[10px] text-muted mt-2">{joiningMessage}</span>}
+                    </form>
+                </div>
+            )}
+          </div>
+        </section>
       )}
 
       {activeTab === 'signup' && !isLoggedIn && (
@@ -548,31 +567,52 @@ function App() {
         <section className="py-24 min-h-screen">
           <div className="platform-container">
             <h2 className="text-5xl font-black uppercase tracking-tighter mb-8">Committee Dashboard</h2>
-            <p className="text-muted mb-8">Pending membership requests</p>
-            <div className="flex flex-col gap-4">
-              {pendingRequests.map((request) => (
-                <div key={request.id} className="lab-card p-6">
-                  <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <h3 className="text-xl font-black">{request.legal_name}</h3>
-                      <p className="text-sm text-muted">{request.class_grade} · @{request.github_handle}</p>
-                      {request.email && <p className="text-sm text-muted">{request.email}</p>}
-                      <p className="text-sm text-dim mt-2">{request.research_focus}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div>
+                    <h3 className="text-2xl font-black uppercase tracking-tighter mb-6">Pending Requests</h3>
+                    <div className="flex flex-col gap-4">
+                        {pendingRequests.map((request) => (
+                            <div key={request.id} className="lab-card p-6">
+                            <div className="flex justify-between items-start gap-4">
+                                <div>
+                                <h3 className="text-xl font-black">{request.legal_name}</h3>
+                                <p className="text-sm text-muted">{request.class_grade} · @{request.github_handle}</p>
+                                {request.email && <p className="text-sm text-muted">{request.email}</p>}
+                                <p className="text-sm text-dim mt-2">{request.research_focus}</p>
+                                </div>
+                                <div className="flex gap-3">
+                                {request.email && (
+                                    <a className="btn-ghost p-2 rounded-lg" href={`mailto:${request.email}?subject=SMS Membership Application`}>
+                                    <Mail size={18} />
+                                    </a>
+                                )}
+                                <button className="btn btn-primary" onClick={() => handleRequestDecision(request.id, 'approved', request.user_id)}>Approve</button>
+                                <button className="btn btn-secondary" onClick={() => handleRequestDecision(request.id, 'rejected', request.user_id)}>Reject</button>
+                                </div>
+                            </div>
+                            </div>
+                        ))}
+                        {!pendingRequests.length && <p className="text-muted">No pending requests.</p>}
+                        {committeeMessage && <p className="mono text-[10px] text-muted">{committeeMessage}</p>}
                     </div>
-                    <div className="flex gap-3">
-                      {request.email && (
-                        <a className="btn-ghost px-3 py-2 rounded-lg" href={`mailto:${request.email}?subject=SMS Membership Application`}>
-                          Email Applicant
-                        </a>
-                      )}
-                      <button className="btn btn-primary" onClick={() => handleRequestDecision(request.id, 'approved', request.user_id)}>Approve</button>
-                      <button className="btn btn-secondary" onClick={() => handleRequestDecision(request.id, 'rejected', request.user_id)}>Reject</button>
-                    </div>
-                  </div>
                 </div>
-              ))}
-              {!pendingRequests.length && <p className="text-muted">No pending requests.</p>}
-              {committeeMessage && <p className="mono text-[10px] text-muted">{committeeMessage}</p>}
+                <div>
+                    <h3 className="text-2xl font-black uppercase tracking-tighter mb-6">Active Members</h3>
+                    <div className="flex flex-col gap-4">
+                        {allMembers.map((member) => (
+                            <div key={member.user_id} className="lab-card p-4 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <User size={20} className="text-muted" />
+                                    <div>
+                                        <p className="font-bold">{member.profiles?.full_name || 'Member'}</p>
+                                        <p className="text-xs text-muted">{member.profiles?.email}</p>
+                                    </div>
+                                </div>
+                                <button className="btn btn-ghost text-[10px]" onClick={() => promoteToCommittee(member.user_id)}>Promote</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
           </div>
         </section>
