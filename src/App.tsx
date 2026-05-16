@@ -2,20 +2,14 @@ import { useState } from 'react';
 import { 
   Atom, 
   Globe, 
-  Terminal,
   ChevronRight,
-  Database,
   Users,
   X,
-  ClipboardCheck,
-  GitPullRequest,
   CheckCircle2,
-  FileText,
   FlaskConical,
   Box,
   Plus,
-  ArrowRight,
-  Github
+  ArrowRight
 } from 'lucide-react';
 
 interface Project {
@@ -92,7 +86,7 @@ function App() {
               rel="noopener noreferrer"
               className="btn btn-secondary"
             >
-              <Github size={18} />
+              <Globe size={18} />
               <span className="hide-mobile">GitHub</span>
             </a>
           </div>
@@ -340,7 +334,7 @@ function App() {
 
             <div className="flex flex-col sm:flex-row gap-4 pt-10 border-t border-slate-800">
               <a href={selectedProject.githubUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary flex-1 justify-center py-4">
-                <Github size={18} /> Source Repository
+                <Globe size={18} /> Source Repository
               </a>
               <a 
                 href={`${selectedProject.githubUrl}/issues`} 
@@ -367,7 +361,7 @@ function App() {
           </p>
           <div className="flex gap-8">
             <a href="https://github.com/synapse-dot/mcsms.github.io" className="text-slate-500 hover:text-emerald-500 transition-colors">
-              <Github size={24} />
+              <Globe size={24} />
             </a>
           </div>
         </div>
