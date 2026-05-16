@@ -15,41 +15,44 @@ import {
 
 interface Project {
   id: string;
+  slug: string;
   title: string;
-  desc: string;
+  description: string;
   status: 'stable' | 'research';
   version: string;
-  problemStatement: string;
-  mathModel: string;
-  simulationApproach: string;
+  problem_statement: string;
+  math_model: string;
+  simulation_approach: string;
   observations: string;
   conclusion: string;
   githubUrl: string;
 }
 
-const projects: Project[] = [
+const seedProjects: Project[] = [
   { 
     id: 'projectiles',
+    slug: 'projectiles',
     title: "3D Ballistics Engine", 
-    desc: "Kinematic modeling of high-velocity projectiles with variable atmospheric density and wind vectors.", 
+    description: "Kinematic modeling of high-velocity projectiles with variable atmospheric density and wind vectors.", 
     status: 'stable',
     version: '1.0.0',
-    problemStatement: "Modeling accurate 3D kinematics for high-velocity objects where air resistance and wind vectors cannot be ignored.",
-    mathModel: "Second-order ODEs: F_total = m*g + F_drag. Drag force F_d = -1/2 * ρ * v^2 * C_d * A.",
-    simulationApproach: "Euler Integration with dynamic time-stepping for stability. OpenGL for real-time trajectory plotting.",
+    problem_statement: "Modeling accurate 3D kinematics for high-velocity objects where air resistance and wind vectors cannot be ignored.",
+    math_model: "Second-order ODEs: F_total = m*g + F_drag. Drag force F_d = -1/2 * ρ * v^2 * C_d * A.",
+    simulation_approach: "Euler Integration with dynamic time-stepping for stability. OpenGL for real-time trajectory plotting.",
     observations: "Non-linear drag significantly alters terminal range; wind vectors introduce complex lateral displacement.",
     conclusion: "Numerical methods are essential for modeling non-ideal conditions where analytical solutions are unavailable.",
     githubUrl: "https://github.com/synapse-dot/3DProjectiles"
   },
   { 
     id: 'physx',
+    slug: 'physx',
     title: "Gravitational Lensing", 
-    desc: "Interactive light-ray deflection simulation based on Point-Mass deflection formulas from General Relativity.", 
+    description: "Interactive light-ray deflection simulation based on Point-Mass deflection formulas from General Relativity.", 
     status: 'stable',
     version: '1.0.0',
-    problemStatement: "Visualizing space-time curvature effects on light propagation near massive stellar objects.",
-    mathModel: "α = 4GM / (c² b). Impact parameter 'b' determines deflection strength and caustic formation.",
-    simulationApproach: "Path integration of light rays using 4th-order Runge-Kutta. PyQt6 for the interactive parameter interface.",
+    problem_statement: "Visualizing space-time curvature effects on light propagation near massive stellar objects.",
+    math_model: "α = 4GM / (c² b). Impact parameter 'b' determines deflection strength and caustic formation.",
+    simulation_approach: "Path integration of light rays using 4th-order Runge-Kutta. PyQt6 for the interactive parameter interface.",
     observations: "Formation of Einstein rings and multiple image systems verified through impact parameter sweep.",
     conclusion: "Real-time computational lensing provides a pedagogical tool for understanding space-time geometry.",
     githubUrl: "https://github.com/synapse-dot/PhysX"
@@ -69,7 +72,7 @@ function App() {
   );
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<'home' | 'lab' | 'dashboard'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'lab' | 'dashboard' | 'committee'>('home');
   const [sessionToken, setSessionToken] = useState<string | null>(localStorage.getItem('sms_access_token'));
   const [memberName, setMemberName] = useState<string>('Researcher');
   const [memberId, setMemberId] = useState<string | null>(null);
@@ -78,6 +81,12 @@ function App() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [joiningMessage, setJoiningMessage] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>(seedProjects);
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
+  const [committeeRole, setCommitteeRole] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [committeeMessage, setCommitteeMessage] = useState<string | null>(null);
   const isLoggedIn = Boolean(sessionToken);
 
   useEffect(() => {
@@ -93,6 +102,63 @@ function App() {
       .catch(() => undefined);
   }, [supabaseReady, sessionToken, supabaseUrl, apiHeaders]);
 
+
+  useEffect(() => {
+    if (!supabaseReady) return;
+    setProjectsLoading(true);
+    fetch(`${supabaseUrl}/rest/v1/projects?select=*&order=created_at.desc`, { headers: apiHeaders })
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data) => {
+        if (Array.isArray(data) && data.length) setProjects(data);
+      })
+      .catch(() => setProjectsError('Could not load projects from database; showing fallback archive.'))
+      .finally(() => setProjectsLoading(false));
+  }, [supabaseReady, supabaseUrl, apiHeaders]);
+
+  useEffect(() => {
+    if (!supabaseReady || !sessionToken || !memberId) return;
+    fetch(`${supabaseUrl}/rest/v1/user_roles?select=role&user_id=eq.${memberId}`, {
+      headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` }
+    })
+      .then((r) => r.ok ? r.json() : [])
+      .then((rows) => setCommitteeRole(Array.isArray(rows) && rows.some((row: any) => row.role === 'committee')))
+      .catch(() => setCommitteeRole(false));
+  }, [supabaseReady, sessionToken, memberId, supabaseUrl, apiHeaders]);
+
+  const loadPendingRequests = async () => {
+    if (!supabaseReady || !sessionToken) return;
+    const res = await fetch(`${supabaseUrl}/rest/v1/membership_requests?select=*&status=eq.pending&order=created_at.asc`, {
+      headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` }
+    });
+    if (!res.ok) {
+      setCommitteeMessage('Unable to load pending requests. Check membership_requests RLS.');
+      return;
+    }
+    const data = await res.json();
+    setPendingRequests(Array.isArray(data) ? data : []);
+  };
+
+  const handleRequestDecision = async (id: string, status: 'approved' | 'rejected', userId: string) => {
+    if (!supabaseReady || !sessionToken) return;
+    const updateRes = await fetch(`${supabaseUrl}/rest/v1/membership_requests?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` , Prefer: 'return=minimal'},
+      body: JSON.stringify({ status })
+    });
+    if (!updateRes.ok) {
+      setCommitteeMessage('Failed to update request status.');
+      return;
+    }
+    if (status === 'approved') {
+      await fetch(`${supabaseUrl}/rest/v1/user_roles`, {
+        method: 'POST',
+        headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}`, Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ user_id: userId, role: 'member' })
+      });
+    }
+    setCommitteeMessage(`Request ${status}.`);
+    loadPendingRequests();
+  };
   const runAuth = async () => {
     if (!supabaseReady) {
       setAuthMessage('Missing Supabase env variables. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
@@ -142,6 +208,7 @@ function App() {
             <span onClick={() => setActiveTab('home')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'home' ? 'text-emerald' : 'text-dim'}`}>Index</span>
             <span onClick={() => setActiveTab('lab')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'lab' ? 'text-emerald' : 'text-dim'}`}>Laboratory</span>
             {isLoggedIn && <span onClick={() => setActiveTab('dashboard')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'dashboard' ? 'text-emerald' : 'text-dim'}`}>Dashboard</span>}
+            {isLoggedIn && committeeRole && <span onClick={() => { setActiveTab('committee'); loadPendingRequests(); }} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'committee' ? 'text-emerald' : 'text-dim'}`}>Committee</span>}
           </div>
 
           <div className="flex gap-4">
@@ -309,7 +376,7 @@ function App() {
                </button>
             </div>
 
-            <div className="bento-grid">
+            <div className="mb-6">{projectsLoading && <p className="mono text-[10px] text-muted">Loading projects...</p>}{projectsError && <p className="mono text-[10px] text-muted">{projectsError}</p>}</div><div className="bento-grid">
                {projects.map((p) => (
                  <div key={p.id} className="lab-card flex flex-col cursor-pointer" onClick={() => setSelectedProject(p)}>
                     <div className="flex justify-between items-start mb-10">
@@ -319,7 +386,7 @@ function App() {
                        <span className="mono text-[10px] font-bold px-2 py-1 bg-border-subtle rounded">{p.version}</span>
                     </div>
                     <h3 className="text-2xl font-black mb-3">{p.title}</h3>
-                    <p className="text-muted text-sm mb-6 flex-grow">{p.desc}</p>
+                    <p className="text-muted text-sm mb-6 flex-grow">{p.description}</p>
                     <div className="flex items-center gap-2 text-emerald text-xs font-bold uppercase tracking-widest">
                        View Archives <ChevronRight size={16} />
                     </div>
@@ -330,6 +397,34 @@ function App() {
         </section>
       )}
       
+      {activeTab === 'committee' && (
+        <section className="py-24 min-h-screen">
+          <div className="platform-container">
+            <h2 className="text-5xl font-black uppercase tracking-tighter mb-8">Committee Dashboard</h2>
+            <p className="text-muted mb-8">Pending membership requests</p>
+            <div className="flex flex-col gap-4">
+              {pendingRequests.map((request) => (
+                <div key={request.id} className="lab-card p-6">
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                      <h3 className="text-xl font-black">{request.legal_name}</h3>
+                      <p className="text-sm text-muted">{request.class_grade} • @{request.github_handle}</p>
+                      <p className="text-sm text-dim mt-2">{request.research_focus}</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button className="btn btn-primary" onClick={() => handleRequestDecision(request.id, 'approved', request.user_id)}>Approve</button>
+                      <button className="btn btn-secondary" onClick={() => handleRequestDecision(request.id, 'rejected', request.user_id)}>Reject</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {!pendingRequests.length && <p className="text-muted">No pending requests.</p>}
+              {committeeMessage && <p className="mono text-[10px] text-muted">{committeeMessage}</p>}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* PROJECT MODAL */}
       {selectedProject && (
         <div className="fixed inset-0 z-50 flex-center bg-black/80 p-6" onClick={() => setSelectedProject(null)}>
@@ -340,11 +435,11 @@ function App() {
                  <div className="space-y-6">
                     <div>
                        <h4 className="mono text-[10px] font-black text-muted uppercase tracking-widest mb-2">Problem</h4>
-                       <p className="text-sm text-dim leading-relaxed">{selectedProject.problemStatement}</p>
+                       <p className="text-sm text-dim leading-relaxed">{selectedProject.problem_statement}</p>
                     </div>
                     <div>
                        <h4 className="mono text-[10px] font-black text-muted uppercase tracking-widest mb-2">Math_Model</h4>
-                       <p className="text-sm text-dim leading-relaxed mono">{selectedProject.mathModel}</p>
+                       <p className="text-sm text-dim leading-relaxed mono">{selectedProject.math_model}</p>
                     </div>
                  </div>
                  <div className="space-y-6">
