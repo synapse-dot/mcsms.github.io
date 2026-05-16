@@ -1,21 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { 
   Atom, 
-  Globe, 
   ChevronRight,
-  Users,
   X,
   Plus,
-  ArrowRight,
   Code,
   Activity,
   ExternalLink,
   Layers,
   LogOut,
-  LayoutDashboard,
   ShieldCheck,
-  Binary,
-  History as HistoryIcon
+  Binary
 } from 'lucide-react';
 
 interface Project {
