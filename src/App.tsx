@@ -186,44 +186,8 @@ function App() {
                 The Platform for <br /><span className="text-emerald">Numerical Reality</span>
               </h1>
               <p className="hero-subtitle">
-              <div className="hero-video-wrap mb-10">
-                <video
-                  className="hero-video"
-                  controls
-                  preload="metadata"
-                  playsInline
-                  src="/Simulation_Society_Intro.mp4"
-                >
-                  Your browser does not support the intro video.
-                </video>
-                <p className="mono text-[10px] text-dim mt-4">Asset: /public/Simulation_Society_Intro.mp4</p>
-              </div>
                 A research-oriented student collective. We model complex systems through mathematical rigor, 
-              <div className="hero-video-wrap mb-10">
-                <video
-                  className="hero-video"
-                  controls
-                  preload="metadata"
-                  playsInline
-                  src="/Simulation_Society_Intro.mp4"
-                >
-                  Your browser does not support the intro video.
-                </video>
-                <p className="mono text-[10px] text-dim mt-4">Asset: /public/Simulation_Society_Intro.mp4</p>
-              </div>
                 versioned artifacts, and peer-to-peer engineering.
-              <div className="hero-video-wrap mb-10">
-                <video
-                  className="hero-video"
-                  controls
-                  preload="metadata"
-                  playsInline
-                  src="/Simulation_Society_Intro.mp4"
-                >
-                  Your browser does not support the intro video.
-                </video>
-                <p className="mono text-[10px] text-dim mt-4">Asset: /public/Simulation_Society_Intro.mp4</p>
-              </div>
               </p>
               <div className="hero-video-wrap mb-10">
                 <video
