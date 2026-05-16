@@ -1,17 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Atom, 
   Code2, 
   Cpu, 
   Globe, 
   GraduationCap, 
-  Layers, 
   LineChart, 
   Rocket, 
   Terminal,
   ChevronRight,
   Database,
-  Search,
   Users,
   X,
   ClipboardCheck,
