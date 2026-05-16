@@ -59,6 +59,18 @@ const seedProjects: Project[] = [
   }
 ];
 
+function getUserIdFromToken(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const jsonPayload = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof jsonPayload.sub === 'string' ? jsonPayload.sub : null;
+  } catch {
+    return null;
+  }
+}
+
 function App() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -85,12 +97,15 @@ function App() {
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [projectsError, setProjectsError] = useState<string | null>(null);
   const [committeeRole, setCommitteeRole] = useState(false);
+  const [roleCheckLoading, setRoleCheckLoading] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [committeeMessage, setCommitteeMessage] = useState<string | null>(null);
   const isLoggedIn = Boolean(sessionToken);
 
   useEffect(() => {
     if (!supabaseReady || !sessionToken) return;
+    const tokenUserId = getUserIdFromToken(sessionToken);
+    if (tokenUserId) setMemberId(tokenUserId);
     fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` }
     })
@@ -117,12 +132,23 @@ function App() {
 
   useEffect(() => {
     if (!supabaseReady || !sessionToken || !memberId) return;
+    setRoleCheckLoading(true);
     fetch(`${supabaseUrl}/rest/v1/user_roles?select=role&user_id=eq.${memberId}`, {
       headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` }
     })
-      .then((r) => r.ok ? r.json() : [])
+      .then(async (r) => {
+        if (!r.ok) {
+          setCommitteeMessage('Role check failed. Re-login or verify user_roles RLS.');
+          return [];
+        }
+        return r.json();
+      })
       .then((rows) => setCommitteeRole(Array.isArray(rows) && rows.some((row: any) => row.role === 'committee')))
-      .catch(() => setCommitteeRole(false));
+      .catch(() => {
+        setCommitteeRole(false);
+        setCommitteeMessage('Unable to validate committee role.');
+      })
+      .finally(() => setRoleCheckLoading(false));
   }, [supabaseReady, sessionToken, memberId, supabaseUrl, apiHeaders]);
 
   const loadPendingRequests = async () => {
@@ -232,6 +258,9 @@ function App() {
                     <div className="w-2 h-2 bg-emerald rounded-full animate-pulse" />
                     <span className="mono text-[10px] font-bold">MEMBER_ACTIVE::{memberName}</span>
                  </div>
+                 <button className="btn-ghost p-2 rounded-lg" onClick={() => { if (memberId) { setCommitteeMessage('Refreshing role...'); setCommitteeRole(false); } }} title="Role refresh may require re-login">
+                    {roleCheckLoading ? '...' : 'Role'}
+                 </button>
                  <button className="btn-ghost p-2 rounded-lg" onClick={signOut}>
                     <LogOut size={18} />
                  </button>
