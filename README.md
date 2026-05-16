@@ -1,73 +1,37 @@
-# React + TypeScript + Vite
+# Simulation & Modeling Society Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This repository contains the public website for the Simulation & Modeling Society.
 
-Currently, two official plugins are available:
+## Current status
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The current frontend is a static/demo experience. A few flows are currently mocked:
 
-## React Compiler
+- "Sign In" only toggles local React state.
+- "Join" opens a prefilled GitHub issue.
+- "Dashboard" is static content.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## How to add real product features
 
-## Expanding the ESLint configuration
+See [`docs/implementation-roadmap.md`](docs/implementation-roadmap.md) for a full production blueprint that maps directly to the club proposals:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- real login & role-based access
+- actual membership joining/approval
+- project archive with observations/conclusions
+- workshop/session scheduling
+- challenge & submission workflows
+- committee review and moderation
+- public visibility pages
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Recommended stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Frontend: React + Vite (already present)
+- Auth + DB + storage: Supabase (Postgres + Row-Level Security)
+- Optional server workflows: Supabase Edge Functions
+- Deployment: Vercel or Netlify (frontend) + Supabase (backend)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Local development
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
