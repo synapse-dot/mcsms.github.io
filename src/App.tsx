@@ -15,7 +15,8 @@ import {
   Cpu,
   FileText,
   Activity,
-  Lightbulb
+  Lightbulb,
+  ClipboardCheck
 } from 'lucide-react';
 
 interface Project {
