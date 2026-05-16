@@ -17,6 +17,9 @@ import {
   Binary,
   History as HistoryIcon
 } from 'lucide-react';
+  Binary,
+  History as HistoryIcon
+} from 'lucide-react';
 
 interface Project {
   id: string;
@@ -152,7 +155,7 @@ function App() {
                       DATA_STAT: DECRYPTED
                    </div>
                    <video controls style={{ width: '100%', display: 'block' }}>
-                      <source src="/mcsms.github.io/Simulation_Society_Intro.mp4" type="video/mp4" />
+                      <source src="/Simulation_Society_Intro.mp4" type="video/mp4" />
                    </video>
                 </div>
               </div>
