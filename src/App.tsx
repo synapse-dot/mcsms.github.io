@@ -5,8 +5,6 @@ import {
   ChevronRight,
   X,
   Plus,
-  Code,
-  Activity,
   ExternalLink,
   Layers,
   LogOut,
