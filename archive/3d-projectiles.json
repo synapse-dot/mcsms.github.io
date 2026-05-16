@@ -1,0 +1,12 @@
+{
+  "id": "3d-projectiles",
+  "title": "3D Projectile Simulator",
+  "desc": "A C++ program that simulates 3D projectile motion with gravity and air resistance, featuring OpenGL-based 3D animation.",
+  "status": "stable",
+  "version": "1.0.0",
+  "objective": "Model and visualize projectile motion in 3D space using Euler integration, incorporating air resistance and wind effects.",
+  "observation": "Air resistance significantly alters the optimal launch angle from 45 degrees, and wind vectors introduce non-parabolic lateral shifts.",
+  "conclusion": "Euler integration provides a robust numerical solution for real-time visualization, though high-drag scenarios require smaller time steps for stability.",
+  "githubUrl": "https://github.com/synapse-dot/3DProjectiles",
+  "tech": ["C++", "OpenGL", "GLFW", "Euler Integration"]
+}
