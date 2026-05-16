@@ -17,9 +17,6 @@ import {
   Binary,
   History as HistoryIcon
 } from 'lucide-react';
-  Binary,
-  History as HistoryIcon
-} from 'lucide-react';
 
 interface Project {
   id: string;
