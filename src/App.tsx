@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { 
   Atom, 
   Globe, 
@@ -62,9 +62,72 @@ const projects: Project[] = [
 ];
 
 function App() {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+  const supabaseReady = Boolean(supabaseUrl && supabaseAnonKey);
+  const apiHeaders = useMemo(
+    () => ({
+      apikey: supabaseAnonKey ?? '',
+      'Content-Type': 'application/json'
+    }),
+    [supabaseAnonKey]
+  );
+
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<'home' | 'lab' | 'dashboard'>('home');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [sessionToken, setSessionToken] = useState<string | null>(localStorage.getItem('sms_access_token'));
+  const [memberName, setMemberName] = useState<string>('Researcher');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [joiningMessage, setJoiningMessage] = useState<string | null>(null);
+  const isLoggedIn = Boolean(sessionToken);
+
+  useEffect(() => {
+    if (!supabaseReady || !sessionToken) return;
+    fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` }
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((user) => {
+        if (user?.email) setMemberName(user.email.split('@')[0]);
+      })
+      .catch(() => undefined);
+  }, [supabaseReady, sessionToken, supabaseUrl, apiHeaders]);
+
+  const runAuth = async () => {
+    if (!supabaseReady) {
+      setAuthMessage('Missing Supabase env variables. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+      return;
+    }
+    const endpoint = authMode === 'signin' ? 'token?grant_type=password' : 'signup';
+    const payload = authMode === 'signin' ? { email, password } : { email, password, data: { source: 'sms.platform' } };
+    const res = await fetch(`${supabaseUrl}/auth/v1/${endpoint}`, {
+      method: 'POST',
+      headers: apiHeaders,
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setAuthMessage(data.error_description ?? data.msg ?? 'Authentication failed.');
+      return;
+    }
+    const token = data.access_token;
+    if (token) {
+      localStorage.setItem('sms_access_token', token);
+      setSessionToken(token);
+      setAuthMessage(authMode === 'signin' ? 'Signed in successfully.' : 'Account created and signed in.');
+    } else {
+      setAuthMessage('Account created. Check your inbox if email confirmation is enabled.');
+    }
+  };
+
+  const signOut = () => {
+    localStorage.removeItem('sms_access_token');
+    setSessionToken(null);
+    setActiveTab('home');
+  };
 
   return (
     <div className="min-h-screen">
@@ -86,16 +149,26 @@ function App() {
 
           <div className="flex gap-4">
             {!isLoggedIn ? (
-              <button className="btn btn-secondary" onClick={() => setIsLoggedIn(true)}>
-                Sign In
-              </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input className="form-input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <input className="form-input" placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                </div>
+                <div className="flex gap-2">
+                  <button className="btn btn-secondary" onClick={runAuth}>{authMode === 'signin' ? 'Sign In' : 'Sign Up'}</button>
+                  <button className="btn-ghost" onClick={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}>
+                    {authMode === 'signin' ? 'Create account' : 'Have account?'}
+                  </button>
+                </div>
+                {authMessage && <span className="mono text-[10px] text-muted">{authMessage}</span>}
+              </div>
             ) : (
               <div className="flex items-center gap-4">
                  <div className="flex items-center gap-2 bg-emerald-dim px-3 py-1.5 rounded-lg border border-emerald/20">
                     <div className="w-2 h-2 bg-emerald rounded-full animate-pulse" />
-                    <span className="mono text-[10px] font-bold">MEMBER_ACTIVE</span>
+                    <span className="mono text-[10px] font-bold">MEMBER_ACTIVE::{memberName}</span>
                  </div>
-                 <button className="btn-ghost p-2 rounded-lg" onClick={() => { setIsLoggedIn(false); setActiveTab('home'); }}>
+                 <button className="btn-ghost p-2 rounded-lg" onClick={signOut}>
                     <LogOut size={18} />
                  </button>
               </div>
@@ -185,11 +258,29 @@ function App() {
               </div>
 
               <div className="lab-card" style={{ padding: '3.5rem' }}>
-                <form className="flex flex-col gap-6" onSubmit={(e) => {
+                <form className="flex flex-col gap-6" onSubmit={async (e) => {
                   e.preventDefault();
+                  if (!sessionToken || !supabaseReady) {
+                    setJoiningMessage('Please sign in first. Join requests are stored in the club database.');
+                    return;
+                  }
                   const fd = new FormData(e.currentTarget);
-                  const body = `### New Member Manifest\n\n**Name:** ${fd.get('name')}\n**Class:** ${fd.get('class')}\n**GitHub:** @${fd.get('github')}\n**Interest:** ${fd.get('domain')}`;
-                  window.open(`https://github.com/synapse-dot/mcsms.github.io/issues/new?title=Access_Request&body=${encodeURIComponent(body)}`, '_blank');
+                  const res = await fetch(`${supabaseUrl}/rest/v1/membership_requests`, {
+                    method: 'POST',
+                    headers: {
+                      ...apiHeaders,
+                      Authorization: `Bearer ${sessionToken}`,
+                      Prefer: 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                      legal_name: fd.get('name'),
+                      class_grade: fd.get('class'),
+                      github_handle: fd.get('github'),
+                      research_focus: fd.get('domain'),
+                      status: 'pending'
+                    })
+                  });
+                  setJoiningMessage(res.ok ? 'Membership request submitted. Committee review pending.' : 'Could not submit request. Check Supabase schema/RLS.');
                 }}>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="flex flex-col gap-2">
@@ -216,6 +307,7 @@ function App() {
                   <button type="submit" className="btn btn-primary mt-4">
                     Submit Membership Request
                   </button>
+                  {joiningMessage && <span className="mono text-[10px] text-muted">{joiningMessage}</span>}
                 </form>
               </div>
             </div>

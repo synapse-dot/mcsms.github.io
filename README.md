@@ -30,8 +30,24 @@ See [`docs/implementation-roadmap.md`](docs/implementation-roadmap.md) for a ful
 - Deployment: Vercel or Netlify (frontend) + Supabase (backend)
 
 ## Local development
+<<<<<<< ours
 
 ```bash
 npm install
 npm run dev
 ```
+=======
+
+```bash
+cp .env.example .env
+npm install
+npm run dev
+```
+
+### Backend setup required for real login/join
+
+- Configure Supabase project values in `.env`.
+- Create a `membership_requests` table with columns used by the app:
+  `legal_name`, `class_grade`, `github_handle`, `research_focus`, `status`.
+- Add Row-Level Security policies allowing authenticated inserts for own requests.
+>>>>>>> theirs
