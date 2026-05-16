@@ -10,8 +10,6 @@ import {
   ExternalLink,
   Layers,
   LogOut,
-  ShieldCheck,
-  Binary,
   User,
   Mail
 } from 'lucide-react';
@@ -232,7 +230,7 @@ function App() {
     loadCommitteeData();
   };
 
-  const promoteToCommittee = async (userId: string) => {
+  const promoteToCommittee = async (_userId: string) => {
     await fetch(`${supabaseUrl}/rest/v1/user_roles`, {
       method: 'PATCH',
       headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}`, Prefer: 'return=minimal' },
