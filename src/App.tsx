@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { 
   Atom, 
   ChevronRight,
@@ -100,6 +101,9 @@ function App() {
   const [roleCheckLoading, setRoleCheckLoading] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [committeeMessage, setCommitteeMessage] = useState<string | null>(null);
+  const [mySubmissions, setMySubmissions] = useState<any[]>([]);
+  const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
+  const [submissionsLoading, setSubmissionsLoading] = useState(false);
   const isLoggedIn = Boolean(sessionToken);
 
   useEffect(() => {
@@ -185,6 +189,48 @@ function App() {
     setCommitteeMessage(`Request ${status}.`);
     loadPendingRequests();
   };
+
+  const loadMySubmissions = async () => {
+    if (!supabaseReady || !sessionToken || !memberId) return;
+    setSubmissionsLoading(true);
+    const res = await fetch(`${supabaseUrl}/rest/v1/challenge_submissions?select=*&user_id=eq.${memberId}&order=created_at.desc`, {
+      headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}` }
+    });
+    if (!res.ok) {
+      setSubmissionMessage('Could not load your challenge submissions.');
+      setSubmissionsLoading(false);
+      return;
+    }
+    const data = await res.json();
+    setMySubmissions(Array.isArray(data) ? data : []);
+    setSubmissionsLoading(false);
+  };
+
+  const submitChallenge = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!supabaseReady || !sessionToken || !memberId) {
+      setSubmissionMessage('Sign in first to submit a challenge.');
+      return;
+    }
+    const fd = new FormData(e.currentTarget);
+    const res = await fetch(`${supabaseUrl}/rest/v1/challenge_submissions`, {
+      method: 'POST',
+      headers: { ...apiHeaders, Authorization: `Bearer ${sessionToken}`, Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        user_id: memberId,
+        challenge_name: fd.get('challenge_name'),
+        repo_url: fd.get('repo_url'),
+        notes: fd.get('notes')
+      })
+    });
+    if (!res.ok) {
+      setSubmissionMessage('Submission failed. If this challenge already exists, rename it or edit the existing one.');
+      return;
+    }
+    setSubmissionMessage('Challenge submitted successfully.');
+    e.currentTarget.reset();
+    loadMySubmissions();
+  };
   const runAuth = async () => {
     if (!supabaseReady) {
       setAuthMessage('Missing Supabase env variables. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
@@ -233,7 +279,7 @@ function App() {
           <div className="flex gap-10 items-center hide-mobile">
             <span onClick={() => setActiveTab('home')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'home' ? 'text-emerald' : 'text-dim'}`}>Index</span>
             <span onClick={() => setActiveTab('lab')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'lab' ? 'text-emerald' : 'text-dim'}`}>Laboratory</span>
-            {isLoggedIn && <span onClick={() => setActiveTab('dashboard')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'dashboard' ? 'text-emerald' : 'text-dim'}`}>Dashboard</span>}
+            {isLoggedIn && <span onClick={() => { setActiveTab('dashboard'); loadMySubmissions(); }} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'dashboard' ? 'text-emerald' : 'text-dim'}`}>Dashboard</span>}
             {isLoggedIn && committeeRole && <span onClick={() => { setActiveTab('committee'); loadPendingRequests(); }} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'committee' ? 'text-emerald' : 'text-dim'}`}>Committee</span>}
           </div>
 
@@ -425,7 +471,43 @@ function App() {
           </div>
         </section>
       )}
+
+      {activeTab === 'dashboard' && (
+        <section className="py-24 min-h-screen">
+          <div className="platform-container">
+            <h2 className="text-5xl font-black uppercase tracking-tighter mb-8">Member Dashboard</h2>
+            <p className="text-muted mb-10">Submit your challenge repositories and track your submissions.</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="lab-card p-8">
+                <h3 className="text-2xl font-black mb-6">Submit Challenge</h3>
+                <form className="flex flex-col gap-4" onSubmit={submitChallenge}>
+                  <input className="form-input" name="challenge_name" required placeholder="Challenge name" />
+                  <input className="form-input" name="repo_url" required placeholder="https://github.com/user/repo" />
+                  <textarea className="form-input" name="notes" placeholder="Notes (optional)" rows={4} />
+                  <button className="btn btn-primary" type="submit">Submit</button>
+                </form>
+                {submissionMessage && <p className="mono text-[10px] text-muted mt-4">{submissionMessage}</p>}
+              </div>
+              <div className="lab-card p-8">
+                <h3 className="text-2xl font-black mb-6">My Submissions</h3>
+                {submissionsLoading && <p className="mono text-[10px] text-muted">Loading...</p>}
+                {!submissionsLoading && !mySubmissions.length && <p className="text-muted">No submissions yet.</p>}
+                <div className="flex flex-col gap-3">
+                  {mySubmissions.map((submission) => (
+                    <div key={submission.id} className="bg-surface p-4 rounded-xl border border-border-subtle">
+                      <p className="font-bold">{submission.challenge_name}</p>
+                      <a className="text-emerald text-sm" href={submission.repo_url} target="_blank" rel="noreferrer">{submission.repo_url}</a>
+                      {submission.notes && <p className="text-sm text-dim mt-2">{submission.notes}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       
+
       {activeTab === 'committee' && (
         <section className="py-24 min-h-screen">
           <div className="platform-container">
@@ -437,7 +519,7 @@ function App() {
                   <div className="flex justify-between items-start gap-4">
                     <div>
                       <h3 className="text-xl font-black">{request.legal_name}</h3>
-                      <p className="text-sm text-muted">{request.class_grade} • @{request.github_handle}</p>
+                      <p className="text-sm text-muted">{request.class_grade} · @{request.github_handle}</p>
                       <p className="text-sm text-dim mt-2">{request.research_focus}</p>
                     </div>
                     <div className="flex gap-3">
