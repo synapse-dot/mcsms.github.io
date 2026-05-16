@@ -151,9 +151,9 @@ function App() {
                       STREAMING: COLLECTIVE_INTRO.MP4 <br />
                       DATA_STAT: DECRYPTED
                    </div>
-                   <video controls style={{ width: '100%', display: 'block' }}>
-                      <source src="/Simulation_Society_Intro.mp4" type="video/mp4" />
-                   </video>
+                    <video controls style={{ width: '100%', display: 'block' }}>
+                      <source src="Simulation_Society_Intro.mp4" type="video/mp4" />
+                    </video>
                 </div>
               </div>
             </div>
