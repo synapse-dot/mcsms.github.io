@@ -1,18 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800;900&family=IBM+Plex+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --bg-ink: #020617;
-  --bg-panel: #0a0f1e;
-  --signal-green: #22c55e;
-  --signal-green-soft: rgba(34, 197, 94, 0.1);
-  --text-pure: #ffffff;
-  --text-dim: #64748b;
-  --border-heavy: #1e293b;
-  --border-bright: #334155;
-  --accent-glow: 0 0 20px rgba(34, 197, 94, 0.2);
-  
+  --bg-deep: #020617;
+  --bg-surface: #0a0f1e;
+  --bg-card: #0f172a;
+  --emerald: #10b981;
+  --emerald-dim: rgba(16, 185, 129, 0.1);
+  --text-main: #ffffff;
+  --text-dim: #94a3b8;
+  --border-subtle: #1e293b;
   --font-display: 'Lexend', sans-serif;
-  --font-code: 'IBM Plex Mono', monospace;
+  --font-mono: 'IBM Plex Mono', monospace;
 }
 
 * {
@@ -22,205 +20,156 @@
 }
 
 body {
-  background-color: var(--bg-ink);
-  color: var(--text-pure);
+  background-color: var(--bg-deep);
+  color: var(--text-main);
   font-family: var(--font-display);
-  line-height: 1.4;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-.mono { font-family: var(--font-code); }
-
-/* Scientific Grid Foundation */
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  border: 1px solid var(--border-heavy);
-  margin: 1rem;
-  background-image: 
-    radial-gradient(circle at 2px 2px, rgba(255,255,255,0.02) 1px, transparent 0);
-  background-size: 40px 40px;
+/* Layout Core */
+.platform-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
-/* Nav Overhaul */
-.nav-industrial {
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stack-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Fixed Global Button System */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--emerald);
+  color: var(--bg-deep);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+}
+
+.btn-secondary {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-color: var(--border-subtle);
+}
+
+.btn-secondary:hover {
+  border-color: var(--emerald);
+  background: var(--bg-card);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border-subtle);
+}
+
+.btn-ghost:hover {
+  color: var(--text-main);
+  border-color: var(--text-main);
+}
+
+/* Navigation */
+.platform-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
   height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 3rem;
-  border-bottom: 2px solid var(--border-heavy);
-  background: var(--bg-ink);
 }
 
-.nav-brand {
-  font-weight: 900;
-  font-size: 1.5rem;
-  letter-spacing: -0.05em;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.nav-link-group { display: flex; gap: 4rem; }
-
-.nav-link {
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  color: var(--text-dim);
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.nav-link:hover, .nav-link.active { color: var(--signal-green); }
-
-/* Hero: The Laboratory Entry */
-.hero-box {
-  padding: 8rem 3rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  border-bottom: 2px solid var(--border-heavy);
-}
-
-.hero-text h1 {
-  font-size: clamp(3rem, 10vw, 6.5rem);
-  font-weight: 900;
-  line-height: 0.85;
-  letter-spacing: -0.06em;
-  margin-bottom: 2rem;
-  text-transform: uppercase;
-}
-
-.hero-subtitle {
-  font-family: var(--font-code);
-  font-size: 1rem;
-  color: var(--text-dim);
-  max-width: 400px;
-  border-left: 2px solid var(--signal-green);
-  padding-left: 1.5rem;
-}
-
-/* Industrial Component: Lab Report */
-.lab-report {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-heavy);
-  padding: 4rem;
-  position: relative;
-}
-
-.lab-label {
-  font-family: var(--font-code);
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--signal-green);
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  margin-bottom: 1.5rem;
-  display: block;
-}
-
-/* Bento-Lab Grid */
-.lab-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 1px;
-  background: var(--border-heavy);
-  border: 1px solid var(--border-heavy);
-}
-
+/* Laboratory Components */
 .lab-card {
-  grid-column: span 4;
-  background: var(--bg-ink);
-  padding: 3rem;
-  transition: all 0.4s;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  transition: all 0.3s;
 }
 
 .lab-card:hover {
-  background: var(--bg-panel);
-  box-shadow: inset 0 0 40px rgba(34, 197, 94, 0.05);
+  border-color: var(--emerald);
+  transform: translateY(-5px);
 }
 
-/* Functional Onboarding Video */
-.video-frame {
-  position: relative;
-  background: #000;
-  border: 4px solid var(--border-heavy);
-  aspect-ratio: 16/9;
-  overflow: hidden;
+/* Form Styles */
+.form-input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-subtle);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  outline: none;
+  transition: border-color 0.2s;
 }
 
-.video-overlay-data {
-  position: absolute;
-  top: 1rem;
-  left: 1.5rem;
-  font-family: var(--font-code);
-  font-size: 0.65rem;
-  color: var(--signal-green);
-  z-index: 10;
-  pointer-events: none;
+.form-input:focus {
+  border-color: var(--emerald);
 }
 
 /* Modals */
-.modal-industrial {
+.modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.98);
-  z-index: 1000;
-  padding: 4rem;
-  overflow-y: auto;
-}
-
-.modal-content-wrapper {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.modal-header {
-  border-bottom: 2px solid var(--border-heavy);
-  padding-bottom: 2rem;
-  margin-bottom: 3rem;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(8px);
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
 }
 
-/* Form refinement */
-.input-industrial {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid var(--border-heavy);
-  border-radius: 0;
-  padding: 1rem 0;
-  font-family: var(--font-code);
-  color: var(--text-pure);
+.modal-surface {
+  background: var(--bg-card);
   width: 100%;
-  margin-bottom: 2rem;
+  max-width: 960px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 2rem;
+  border: 1px solid var(--border-subtle);
+  padding: 4rem;
+  position: relative;
 }
 
-.input-industrial:focus {
-  border-color: var(--signal-green);
-  outline: none;
-}
+/* Typography Helpers */
+.mono { font-family: var(--font-mono); }
+.text-emerald { color: var(--emerald); }
+.text-muted { color: var(--text-dim); }
 
-.btn-signal {
-  background: var(--signal-green);
-  color: var(--bg-ink);
-  padding: 1.5rem 3rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  border: none;
-  cursor: pointer;
-}
-
-@media (max-width: 1024px) {
-  .hero-box { grid-template-columns: 1fr; }
-  .lab-card { grid-column: span 12; }
+@media (max-width: 768px) {
+  .modal-surface { padding: 2rem; }
+  .btn { width: 100%; }
 }
