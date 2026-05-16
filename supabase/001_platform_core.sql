@@ -52,10 +52,20 @@ create table if not exists public.challenge_submissions (
   unique (user_id, challenge_name)
 );
 
+-- Enable RLS
+alter table public.user_roles enable row level security;
 alter table public.projects enable row level security;
 alter table public.project_reports enable row level security;
 alter table public.sessions enable row level security;
 alter table public.challenge_submissions enable row level security;
+
+-- Policies for user_roles
+create policy "Users can read own role" on public.user_roles
+for select to authenticated using (auth.uid() = user_id);
+
+create policy "Committee can read all roles" on public.user_roles
+for select to authenticated
+using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'committee'));
 
 -- Public read access for archive content.
 create policy if not exists "projects public read" on public.projects
@@ -82,6 +92,7 @@ create policy if not exists "committee read submissions" on public.challenge_sub
 for select to authenticated
 using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'committee'));
 
+-- Grants
 grant usage on schema public to anon, authenticated;
 grant select on public.projects, public.project_reports, public.sessions to anon, authenticated;
 grant select, insert, update on public.challenge_submissions to authenticated;
