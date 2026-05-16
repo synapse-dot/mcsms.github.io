@@ -1,217 +1,226 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800;900&family=IBM+Plex+Mono:wght@400;500;700&display=swap');
+
 :root {
-  --bg-main: #030712;
-  --bg-card: #0f172a;
-  --accent-primary: #10b981; /* Emerald */
-  --accent-secondary: #0ea5e9; /* Sky */
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border: rgba(255, 255, 255, 0.08);
-  --glass: rgba(15, 23, 42, 0.6);
-  --font-sans: 'Inter', -apple-system, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --bg-ink: #020617;
+  --bg-panel: #0a0f1e;
+  --signal-green: #22c55e;
+  --signal-green-soft: rgba(34, 197, 94, 0.1);
+  --text-pure: #ffffff;
+  --text-dim: #64748b;
+  --border-heavy: #1e293b;
+  --border-bright: #334155;
+  --accent-glow: 0 0 20px rgba(34, 197, 94, 0.2);
+  
+  --font-display: 'Lexend', sans-serif;
+  --font-code: 'IBM Plex Mono', monospace;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  font-family: var(--font-sans);
-  line-height: 1.6;
+  background-color: var(--bg-ink);
+  color: var(--text-pure);
+  font-family: var(--font-display);
+  line-height: 1.4;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+.mono { font-family: var(--font-code); }
+
+/* Scientific Grid Foundation */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  border: 1px solid var(--border-heavy);
+  margin: 1rem;
+  background-image: 
+    radial-gradient(circle at 2px 2px, rgba(255,255,255,0.02) 1px, transparent 0);
+  background-size: 40px 40px;
 }
 
-/* Typography */
-h1, h2, h3, h4 {
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-
-.mono {
-  font-family: var(--font-mono);
-  font-size: 0.9em;
-}
-
-/* Glassmorphism Navigation */
-.nav {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 100;
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-}
-
-/* Modern Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.8rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid transparent;
-}
-
-.btn-primary {
-  background: var(--accent-primary);
-  color: var(--bg-main);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-main);
-  border: 1px solid var(--border);
-}
-
-.btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--text-muted);
-}
-
-/* Scientific Method Cards */
-.bento-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-}
-
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 1.25rem;
-  padding: 2rem;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.card:hover {
-  border-color: var(--accent-primary);
-  background: #111b2e;
-}
-
-/* Onboarding Video Section */
-.video-container {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: #000;
-  border-radius: 1.5rem;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.5);
-}
-
-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Lab Report Architecture */
-.report-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: rgba(2, 6, 23, 0.95);
-  backdrop-filter: blur(8px);
+/* Nav Overhaul */
+.nav-industrial {
+  height: 80px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  justify-content: space-between;
+  padding: 0 3rem;
+  border-bottom: 2px solid var(--border-heavy);
+  background: var(--bg-ink);
 }
 
-.report-modal {
-  background: var(--bg-card);
-  width: 100%;
-  max-width: 1000px;
-  max-height: 90vh;
-  overflow-y: auto;
-  border-radius: 2rem;
-  border: 1px solid var(--border);
-  box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5);
+.nav-brand {
+  font-weight: 900;
+  font-size: 1.5rem;
+  letter-spacing: -0.05em;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.report-header {
-  padding: 3rem 3rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
+.nav-link-group { display: flex; gap: 4rem; }
 
-.report-body {
-  padding: 3rem;
-}
-
-.method-step {
-  margin-bottom: 3rem;
-}
-
-.method-label {
-  font-family: var(--font-mono);
+.nav-link {
+  text-transform: uppercase;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--accent-primary);
-  text-transform: uppercase;
   letter-spacing: 0.2em;
-  margin-bottom: 0.75rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.nav-link:hover, .nav-link.active { color: var(--signal-green); }
+
+/* Hero: The Laboratory Entry */
+.hero-box {
+  padding: 8rem 3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  border-bottom: 2px solid var(--border-heavy);
+}
+
+.hero-text h1 {
+  font-size: clamp(3rem, 10vw, 6.5rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.06em;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+}
+
+.hero-subtitle {
+  font-family: var(--font-code);
+  font-size: 1rem;
+  color: var(--text-dim);
+  max-width: 400px;
+  border-left: 2px solid var(--signal-green);
+  padding-left: 1.5rem;
+}
+
+/* Industrial Component: Lab Report */
+.lab-report {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-heavy);
+  padding: 4rem;
+  position: relative;
+}
+
+.lab-label {
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--signal-green);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+/* Bento-Lab Grid */
+.lab-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1px;
+  background: var(--border-heavy);
+  border: 1px solid var(--border-heavy);
+}
+
+.lab-card {
+  grid-column: span 4;
+  background: var(--bg-ink);
+  padding: 3rem;
+  transition: all 0.4s;
+  cursor: pointer;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
 }
 
-.method-content {
-  color: var(--text-main);
-  font-size: 1.1rem;
-  line-height: 1.7;
+.lab-card:hover {
+  background: var(--bg-panel);
+  box-shadow: inset 0 0 40px rgba(34, 197, 94, 0.05);
 }
 
-.finding-box {
-  background: #020617;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  border-left: 4px solid var(--accent-primary);
-  margin-top: 1rem;
+/* Functional Onboarding Video */
+.video-frame {
+  position: relative;
+  background: #000;
+  border: 4px solid var(--border-heavy);
+  aspect-ratio: 16/9;
+  overflow: hidden;
 }
 
-/* Inputs & Form */
-input, select, textarea {
+.video-overlay-data {
+  position: absolute;
+  top: 1rem;
+  left: 1.5rem;
+  font-family: var(--font-code);
+  font-size: 0.65rem;
+  color: var(--signal-green);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Modals */
+.modal-industrial {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.98);
+  z-index: 1000;
+  padding: 4rem;
+  overflow-y: auto;
+}
+
+.modal-content-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.modal-header {
+  border-bottom: 2px solid var(--border-heavy);
+  padding-bottom: 2rem;
+  margin-bottom: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+/* Form refinement */
+.input-industrial {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--border-heavy);
+  border-radius: 0;
+  padding: 1rem 0;
+  font-family: var(--font-code);
+  color: var(--text-pure);
   width: 100%;
-  background: rgba(2, 6, 23, 0.5);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 0.8rem 1rem;
-  color: var(--text-main);
-  font-family: var(--font-sans);
+  margin-bottom: 2rem;
+}
+
+.input-industrial:focus {
+  border-color: var(--signal-green);
   outline: none;
-  transition: border-color 0.2s;
 }
 
-input:focus {
-  border-color: var(--accent-primary);
+.btn-signal {
+  background: var(--signal-green);
+  color: var(--bg-ink);
+  padding: 1.5rem 3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: none;
+  cursor: pointer;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .report-header, .report-body { padding: 1.5rem; }
-  h1 { font-size: 2.5rem; }
+@media (max-width: 1024px) {
+  .hero-box { grid-template-columns: 1fr; }
+  .lab-card { grid-column: span 12; }
 }

@@ -12,10 +12,12 @@ import {
   Code,
   Binary,
   Cpu,
-  FileText,
   Activity,
   Lightbulb,
-  ClipboardCheck
+  ExternalLink,
+  Layers,
+  History,
+  Info
 } from 'lucide-react';
 
 interface Project {
@@ -32,7 +34,7 @@ interface Project {
   githubUrl: string;
 }
 
-const initialProjects: Project[] = [
+const projects: Project[] = [
   { 
     id: '3d-projectiles',
     title: "3D Projectile Simulator", 
@@ -40,23 +42,23 @@ const initialProjects: Project[] = [
     status: 'stable',
     version: '1.0.0',
     problemStatement: "Modeling accurate 3D kinematics for high-velocity objects where air resistance and wind vectors cannot be ignored.",
-    mathModel: "Second-order ODEs including Drag force F_d = -1/2 * ρ * v^2 * C_d * A and Magnus effect for spinning bodies.",
-    simulationApproach: "Numerical solution via Euler Integration with a variable time-step to ensure stability in high-drag regions.",
-    observations: "Lateral wind components create non-parabolic displacement; drag significantly shortens terminal range vs vacuum models.",
-    conclusion: "Numerical integration matches analytical models for low speeds but is essential for capturing non-linear atmospheric effects.",
+    mathModel: "Second-order ODEs: F_total = m*g + F_drag. Drag force F_d = -1/2 * ρ * v^2 * C_d * A.",
+    simulationApproach: "Euler Integration with dynamic time-stepping for stability. OpenGL for real-time trajectory plotting.",
+    observations: "Non-linear drag significantly alters terminal range; wind vectors introduce complex lateral displacement.",
+    conclusion: "Numerical methods are essential for modeling non-ideal conditions where analytical solutions are unavailable.",
     githubUrl: "https://github.com/synapse-dot/3DProjectiles"
   },
   { 
     id: 'physx',
-    title: "Interactive Gravitational Lensing", 
-    desc: "An educational application simulating light-ray deflection by massive objects (black holes) using numerical integration.", 
+    title: "Gravitational Lensing", 
+    desc: "Interactive light-ray deflection simulation based on Point-Mass deflection formulas from General Relativity.", 
     status: 'stable',
     version: '1.0.0',
-    problemStatement: "Visualizing the non-intuitive bending of light rays as they pass through the curved space-time of massive stellar objects.",
-    mathModel: "Point-mass deflection angle α = 4GM / (c² b), where G is gravitational constant, M is mass, and b is impact parameter.",
-    simulationApproach: "Accumulating infinitesimal deflections along the light-ray path using a 4th-order Runge-Kutta integrator for high precision.",
-    observations: "Formation of Einstein rings and multiple imaging occurs when the source, lens, and observer are perfectly aligned.",
-    conclusion: "Computational models successfully reproduce the optical phenomena predicted by General Relativity in a real-time environment.",
+    problemStatement: "Visualizing space-time curvature effects on light propagation near massive stellar objects.",
+    mathModel: "α = 4GM / (c² b). Impact parameter 'b' determines deflection strength and caustic formation.",
+    simulationApproach: "Path integration of light rays using 4th-order Runge-Kutta. PyQt6 for the interactive parameter interface.",
+    observations: "Formation of Einstein rings and multiple image systems verified through impact parameter sweep.",
+    conclusion: "Real-time computational lensing provides a pedagogical tool for understanding space-time geometry.",
     githubUrl: "https://github.com/synapse-dot/PhysX"
   }
 ];
@@ -66,205 +68,197 @@ function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'lab'>('home');
 
   return (
-    <div className="min-h-screen">
-      <nav className="nav">
-        <div className="container py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-            <div className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20">
-              <Atom className="text-emerald-500" size={24} />
-            </div>
-            <span className="text-xl font-bold tracking-tighter">SMS</span>
-          </div>
-          
-          <div className="flex gap-8 items-center">
-            <div className="flex gap-8 hide-mobile">
-              <button 
-                onClick={() => setActiveTab('home')} 
-                className={`mono text-xs uppercase tracking-widest bg-transparent border-none cursor-pointer ${activeTab === 'home' ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}
-              >
-                // Home
-              </button>
-              <button 
-                onClick={() => setActiveTab('lab')} 
-                className={`mono text-xs uppercase tracking-widest bg-transparent border-none cursor-pointer ${activeTab === 'lab' ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}
-              >
-                // Research Lab
-              </button>
-            </div>
-            <a 
-              href="https://github.com/synapse-dot/mcsms.github.io" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="btn btn-ghost"
-              style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }}
-            >
-              <Globe size={14} /> GitHub
-            </a>
-          </div>
+    <div className="app-container">
+      {/* INDUSTRIAL NAVIGATION */}
+      <nav className="nav-industrial">
+        <div className="nav-brand" onClick={() => setActiveTab('home')} style={{ cursor: 'pointer' }}>
+          <Atom className="text-signal-green" size={32} strokeWidth={3} />
+          <span>SMS.RESEARCH</span>
+        </div>
+        
+        <div className="nav-link-group hide-mobile">
+          <span onClick={() => setActiveTab('home')} className={`nav-link ${activeTab === 'home' ? 'active' : ''}`}>System.Index</span>
+          <span onClick={() => setActiveTab('lab')} className={`nav-link ${activeTab === 'lab' ? 'active' : ''}`}>Research.Archive</span>
+        </div>
+
+        <div className="flex items-center gap-6">
+          <a href="https://github.com/synapse-dot/mcsms.github.io" className="nav-link mono" style={{ fontSize: '0.65rem' }}>
+            SRC.CORE_REPOSITORY
+          </a>
         </div>
       </nav>
 
       {activeTab === 'home' ? (
-        <>
-          <header className="container pt-40 pb-24">
-            <div className="max-w-4xl">
-              <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-md text-[10px] font-bold mb-6 border border-emerald-500/20 uppercase tracking-widest">
-                System_Status: Operational
-              </div>
-              <h1 className="text-6xl md:text-8xl font-black mb-8 leading-[0.9] tracking-tighter">
-                The Art of <br />
-                <span className="text-emerald-500">Computer Simulation</span>
-              </h1>
-              <p className="text-xl text-slate-400 mb-12 max-w-2xl leading-relaxed">
-                A research collective modeling the world's most fascinating phenomena through numerical integration, mathematical rigor, and open-source collaboration.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <button onClick={() => setActiveTab('lab')} className="btn btn-primary">
-                  Access Research Archive <ArrowRight size={18} />
-                </button>
-                <a href="#onboarding" className="btn btn-ghost">
-                  Explore Onboarding
-                </a>
-              </div>
+        <main>
+          {/* HERO: LABORATORY ENTRY */}
+          <section className="hero-box">
+            <div className="hero-text">
+              <span className="lab-label">Simulation & Modeling Society</span>
+              <h1>The Art of <br /><span className="text-signal-green">Numerical</span><br />Reality</h1>
             </div>
-          </header>
-
-          <section id="onboarding" className="container py-24 border-t border-white/5">
-            <div className="grid lg:grid-cols-2 gap-20 items-center">
-              <div>
-                <h2 className="text-4xl font-bold mb-8 tracking-tight">Onboarding Membership</h2>
-                <div className="space-y-8">
-                  <div className="flex gap-6">
-                    <div className="bg-emerald-500/10 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border border-emerald-500/20">
-                      <Binary className="text-emerald-500" size={24} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold mb-2">Growth Mindset</h3>
-                      <p className="text-slate-400 text-sm">Be ready to master Python, C++, and legacy FORTRAN to keep the engine room of simulation science running.</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-6">
-                    <div className="bg-emerald-500/10 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border border-emerald-500/20">
-                      <Cpu className="text-emerald-500" size={24} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold mb-2">Linux Environment</h3>
-                      <p className="text-slate-400 text-sm">We daily drive Linux and WSL for parity. Master the command line to master the machine.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="video-container">
-                <video controls poster="/public/icons.svg">
-                  <source src="/mcsms.github.io/Simulation_Society_Intro.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+            <div className="flex flex-col justify-center gap-12">
+              <p className="hero-subtitle">
+                A research-oriented student collective. We model complex systems through mathematical rigor, 
+                versioned artifacts, and peer-to-peer engineering.
+              </p>
+              <div className="flex gap-4">
+                <button onClick={() => setActiveTab('lab')} className="btn btn-primary">
+                  Explore Archive <ArrowRight size={20} />
+                </button>
+                <button className="btn btn-ghost">
+                  Join Society
+                </button>
               </div>
             </div>
           </section>
 
-          <section className="container py-24 border-t border-white/5">
-            <div className="grid lg:grid-cols-2 gap-20">
+          {/* ONBOARDING: VIDEO DATA STREAM */}
+          <section className="container py-24" id="onboarding">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
               <div>
-                <h2 className="text-4xl font-bold mb-8 tracking-tight">The SMS Workflow</h2>
-                <p className="text-slate-400 text-lg mb-12">We follow the strict scientific method for every project artifact.</p>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {[
-                    { icon: Lightbulb, title: "Hypothesis", text: "Identify the problem" },
-                    { icon: Code, title: "Math Model", text: "Define the equations" },
-                    { icon: Activity, title: "Simulation", text: "Numerical execution" },
-                    { icon: ClipboardCheck, title: "Observation", text: "Record the results" }
-                  ].map((item, i) => (
-                    <div key={i} className="bg-white/5 p-6 rounded-2xl border border-white/5">
-                      <item.icon className="text-emerald-500 mb-4" size={24} />
-                      <h4 className="font-bold mb-1">{item.title}</h4>
-                      <p className="text-xs text-slate-500 uppercase tracking-widest">{item.text}</p>
+                <span className="lab-label">Orientation.01</span>
+                <h2 className="text-5xl font-black mb-8 uppercase tracking-tighter">System <br /> Onboarding</h2>
+                <div className="space-y-12">
+                  <div className="flex gap-8">
+                    <div className="bg-signal-green-soft p-4 rounded-xl border border-signal-green/20 h-fit">
+                      <Binary className="text-signal-green" size={32} />
                     </div>
-                  ))}
+                    <div>
+                      <h3 className="text-xl font-bold mb-2 uppercase italic">Growth Mindset</h3>
+                      <p className="text-text-dim text-sm leading-relaxed">
+                        Master Python, C++, and FORTRAN. We maintain the "engine room" of simulation science. 
+                        No black boxes allowed.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-8">
+                    <div className="bg-signal-green-soft p-4 rounded-xl border border-signal-green/20 h-fit">
+                      <Cpu className="text-signal-green" size={32} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold mb-2 uppercase italic">Unix Environment</h3>
+                      <p className="text-text-dim text-sm leading-relaxed">
+                        Linux-first development. We use WSL or native distros for parity. 
+                        Command line mastery is a prerequisite.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="card border-emerald-500/20 shadow-2xl">
-                <h3 className="text-2xl font-bold mb-8 tracking-tight">Society Access Request</h3>
-                <form className="space-y-6" onSubmit={(e) => {
+              <div>
+                <div className="video-frame">
+                  <div className="video-overlay-data">
+                    FILE: SOCIETY_INTRO.MP4 <br />
+                    RES: 1080P_COLLECTIVE_VIEW <br />
+                    STAT: DECRYPTED
+                  </div>
+                  <video controls>
+                    <source src="/mcsms.github.io/Simulation_Society_Intro.mp4" type="video/mp4" />
+                  </video>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* WORKFLOW: SCIENTIFIC ENGINE */}
+          <section className="container py-24 border-y 2px solid var(--border-heavy)">
+            <span className="lab-label text-center">Protocol.Engine</span>
+            <h2 className="text-4xl font-black text-center mb-16 uppercase tracking-widest">The SMS Workflow</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-1">
+              {[
+                { icon: Lightbulb, title: "Hypothesis", desc: "Identify System Problem" },
+                { icon: Code, title: "Math Model", desc: "Define Governing Equations" },
+                { icon: Activity, title: "Simulation", desc: "Numerical Implementation" },
+                { icon: History, title: "Observation", desc: "Document Findings" }
+              ].map((step, i) => (
+                <div key={i} className="bg-panel border border-border-heavy p-10 text-center flex flex-col items-center group">
+                  <step.icon className="text-text-dim group-hover:text-signal-green transition-colors mb-6" size={40} />
+                  <h4 className="text-lg font-black uppercase mb-2">{step.title}</h4>
+                  <p className="mono text-[10px] text-text-dim uppercase tracking-widest">{step.desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ACCESS REQUEST FORM */}
+          <section className="container py-32" id="join">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-24">
+              <div className="lg:col-span-5">
+                <span className="lab-label">Manifest.Apply</span>
+                <h2 className="text-5xl font-black mb-8 uppercase tracking-tighter">Manifest Interest</h2>
+                <p className="text-text-dim mb-8">
+                  Submit your membership request to the committee. Admission requires commitment to 
+                  scientific rigor and open-source documentation.
+                </p>
+                <div className="bg-panel p-8 border-l-4 border-signal-green">
+                  <Info className="text-signal-green mb-4" size={24} />
+                  <p className="mono text-xs leading-relaxed uppercase">
+                    NOTE: Every access request generates a public GitHub Issue. Your technical journey starts with this record.
+                  </p>
+                </div>
+              </div>
+              <div className="lg:col-span-7 bg-panel p-12 border border-border-heavy">
+                <form className="grid grid-cols-2 gap-x-8" onSubmit={(e) => {
                   e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  const name = formData.get('name');
-                  const studentClass = formData.get('class');
-                  const github = formData.get('github');
-                  const domain = formData.get('domain');
-                  
-                  const body = `### New Member Manifest\n\n**Name:** ${name}\n**Class/Grade:** ${studentClass}\n**GitHub:** @${github}\n**Interest Area:** ${domain}\n\n---\n*Sent via SMS Portal*`;
-                  const title = `Access Request: ${name} (@${github})`;
-                  const url = `https://github.com/synapse-dot/mcsms.github.io/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
-                  window.open(url, '_blank');
+                  const fd = new FormData(e.currentTarget);
+                  const body = `### New Member Manifest\n\n**Name:** ${fd.get('name')}\n**Class:** ${fd.get('class')}\n**GitHub:** @${fd.get('github')}\n**Interest:** ${fd.get('domain')}`;
+                  window.open(`https://github.com/synapse-dot/mcsms.github.io/issues/new?title=Access_Request&body=${encodeURIComponent(body)}`, '_blank');
                 }}>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label className="mono text-[10px] text-slate-500 uppercase">Member_Name</label>
-                      <input name="name" required placeholder="Felix Wayne" />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="mono text-[10px] text-slate-500 uppercase">Class_Grade</label>
-                      <input name="class" required placeholder="10-C" />
-                    </div>
+                  <div className="col-span-1">
+                    <label className="lab-label">Legal_Name</label>
+                    <input name="name" className="input-industrial" placeholder="John Doe" required />
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="mono text-[10px] text-slate-500 uppercase">Github_Handle</label>
-                    <input name="github" required placeholder="synapse-dot" />
+                  <div className="col-span-1">
+                    <label className="lab-label">Class_Grade</label>
+                    <input name="class" className="input-industrial" placeholder="12-B" required />
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="mono text-[10px] text-slate-500 uppercase">Research_Interest</label>
-                    <select name="domain">
+                  <div className="col-span-2">
+                    <label className="lab-label">Github_Identity</label>
+                    <input name="github" className="input-industrial" placeholder="octocat" required />
+                  </div>
+                  <div className="col-span-2 mb-12">
+                    <label className="lab-label">Domain_Focus</label>
+                    <select name="domain" className="input-industrial">
                       <option>Physics Simulation</option>
-                      <option>Biological Modeling</option>
-                      <option>Stochastic Finance</option>
+                      <option>Biological Systems</option>
+                      <option>Atmospheric Modeling</option>
                     </select>
                   </div>
-                  <button type="submit" className="btn btn-primary w-full justify-center">
-                    Submit Access Request
-                  </button>
+                  <button type="submit" className="btn-signal col-span-2">Submit Access Request</button>
                 </form>
               </div>
             </div>
           </section>
-        </>
+        </main>
       ) : (
-        <section className="container pt-32 pb-24">
-          <div className="flex justify-between items-end mb-16">
+        /* RESEARCH LAB: ARCHIVE GRID */
+        <section className="container py-24 min-h-screen">
+          <div className="flex justify-between items-end mb-16 border-b-2 border-border-heavy pb-8">
             <div>
-              <h2 className="text-5xl font-black mb-4 tracking-tighter">Research Archive</h2>
-              <p className="text-slate-400 text-lg">Formal peer-reviewed simulation documentation.</p>
+              <span className="lab-label">Archive.V1</span>
+              <h2 className="text-6xl font-black uppercase tracking-tighter">Research Lab</h2>
             </div>
-            <button 
-              onClick={() => {
-                const title = "Propose New Project";
-                const body = "### Project Proposal\n\n**Project Name:**\n**Description:**\n**GitHub Repo URL:**\n**Research Objective:**\n\n---";
-                window.open(`https://github.com/synapse-dot/mcsms.github.io/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`, '_blank');
-              }}
-              className="btn btn-primary"
-            >
-              <Plus size={18} /> Propose Project
+            <button className="btn btn-primary" onClick={() => window.open('https://github.com/synapse-dot/mcsms.github.io/issues/new', '_blank')}>
+              <Plus size={20} /> Propose Project
             </button>
           </div>
-          
-          <div className="bento-grid">
-            {initialProjects.map((p) => (
-              <div key={p.id} className="card group cursor-pointer" onClick={() => setSelectedProject(p)}>
-                <div className="flex justify-between items-start mb-8">
-                  <div className="bg-emerald-500/10 p-3 rounded-2xl text-emerald-500">
-                    <Box size={24} />
+
+          <div className="lab-grid">
+            {projects.map((p) => (
+              <div key={p.id} className="lab-card" onClick={() => setSelectedProject(p)}>
+                <div className="flex justify-between items-start mb-12">
+                  <div className="bg-signal-green-soft p-3 rounded-lg text-signal-green">
+                    <Layers size={24} />
                   </div>
-                  <div className={`mono text-[10px] font-bold px-2 py-1 rounded border ${p.status === 'stable' ? 'border-emerald-500/50 text-emerald-500' : 'border-amber-500/50 text-amber-500'}`}>
-                    {p.status.toUpperCase()}
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold mb-4 tracking-tight group-hover:text-emerald-500 transition-colors">{p.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-12 line-clamp-3">{p.desc}</p>
-                <div className="flex justify-between items-center pt-6 border-t border-white/5 mt-auto">
-                  <div className="mono text-[10px] text-slate-500 font-bold uppercase tracking-widest">Release: {p.version}</div>
-                  <span className="text-emerald-500 font-bold text-sm flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                    View Lab Report <ChevronRight size={16} />
+                  <span className="mono text-[10px] uppercase tracking-widest text-signal-green font-bold">
+                    REL_{p.version}
                   </span>
+                </div>
+                <h3 className="text-2xl font-bold uppercase mb-4 tracking-tighter group-hover:text-signal-green">{p.title}</h3>
+                <p className="text-text-dim text-sm leading-relaxed mb-12 flex-1">{p.desc}</p>
+                <div className="flex justify-between items-center mt-auto">
+                  <span className="lab-label mb-0">{p.status}</span>
+                  <ChevronRight className="text-signal-green" size={20} />
                 </div>
               </div>
             ))}
@@ -272,82 +266,84 @@ function App() {
         </section>
       )}
 
+      {/* LAB REPORT MODAL: THE SCIENTIFIC ENGINE */}
       {selectedProject && (
-        <div className="report-overlay" onClick={() => setSelectedProject(null)}>
-          <div className="report-modal" onClick={e => e.stopPropagation()}>
-            <div className="report-header">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-6">
-                  <div className="bg-emerald-500/10 p-4 rounded-3xl text-emerald-500 border border-emerald-500/20">
-                    <Box size={32} />
+        <div className="modal-industrial" onClick={() => setSelectedProject(null)}>
+          <div className="modal-content-wrapper" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <span className="lab-label">Formal Report</span>
+                <h2 className="text-6xl font-black uppercase tracking-tighter">{selectedProject.title}</h2>
+                <p className="mono text-xs text-text-dim mt-2 tracking-[0.3em]">ID: {selectedProject.id} // VER: {selectedProject.version}</p>
+              </div>
+              <X className="text-text-dim hover:text-white cursor-pointer mb-2" size={48} onClick={() => setSelectedProject(null)} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-24">
+              <div className="lg:col-span-7 space-y-16">
+                <section>
+                  <span className="lab-label">01. Problem Statement</span>
+                  <p className="text-xl font-semibold leading-relaxed">{selectedProject.problemStatement}</p>
+                </section>
+                
+                <section>
+                  <span className="lab-label">02. Mathematical Model</span>
+                  <div className="bg-panel p-8 border border-border-heavy mono text-signal-green text-sm leading-loose">
+                    {selectedProject.mathModel}
                   </div>
-                  <div>
-                    <h2 className="text-4xl font-black tracking-tighter mb-1">{selectedProject.title}</h2>
-                    <div className="mono text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Lab_Report // ID: {selectedProject.id}</div>
+                </section>
+
+                <section>
+                  <span className="lab-label">03. Simulation Approach</span>
+                  <p className="text-text-dim leading-relaxed">{selectedProject.simulationApproach}</p>
+                </section>
+              </div>
+
+              <div className="lg:col-span-5">
+                <div className="lab-report border-l-4 border-signal-green">
+                  <span className="lab-label">Findings & Validation</span>
+                  <div className="space-y-12 mt-8">
+                    <div>
+                      <h4 className="mono text-[10px] uppercase font-bold text-signal-green mb-2 tracking-widest">Observations</h4>
+                      <p className="text-sm italic">{selectedProject.observations}</p>
+                    </div>
+                    <div className="bg-signal-green-soft p-6 border border-signal-green/20 rounded-xl">
+                      <h4 className="mono text-[10px] uppercase font-bold text-signal-green mb-2 tracking-widest">Verified Conclusion</h4>
+                      <p className="text-sm font-bold text-white leading-relaxed">{selectedProject.conclusion}</p>
+                    </div>
                   </div>
                 </div>
-                <button className="bg-white/5 p-2 rounded-full text-slate-500 hover:text-white transition-colors border-none cursor-pointer" onClick={() => setSelectedProject(null)}>
-                  <X size={24} />
-                </button>
               </div>
             </div>
 
-            <div className="report-body">
-              <div className="method-step">
-                <div className="method-label"><Lightbulb size={12}/> Problem Statement</div>
-                <p className="method-content">{selectedProject.problemStatement}</p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-12 mb-12">
-                <div className="method-step">
-                  <div className="method-label"><Code size={12}/> Mathematical Model</div>
-                  <p className="method-content mono text-sm bg-black/40 p-4 rounded-xl border border-white/5">{selectedProject.mathModel}</p>
-                </div>
-                <div className="method-step">
-                  <div className="method-label"><Activity size={12}/> Simulation Approach</div>
-                  <p className="method-content">{selectedProject.simulationApproach}</p>
-                </div>
-              </div>
-
-              <div className="method-step">
-                <div className="method-label"><FlaskConical size={12}/> Research Findings</div>
-                <div className="finding-box">
-                  <div className="text-[10px] font-bold text-emerald-500 mb-2 uppercase tracking-widest">Observations</div>
-                  <p className="text-slate-300 mb-6">{selectedProject.observations}</p>
-                  <div className="text-[10px] font-bold text-emerald-500 mb-2 uppercase tracking-widest">Verified Conclusion</div>
-                  <p className="text-emerald-50/90 font-medium">{selectedProject.conclusion}</p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 pt-12 border-t border-white/5">
-                <a href={selectedProject.githubUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary flex-1 justify-center">
-                  <Globe size={18} /> View Source Code
-                </a>
-                <a href={`${selectedProject.githubUrl}/issues`} target="_blank" rel="noopener noreferrer" className="btn btn-ghost flex-1 justify-center">
-                  <Users size={18} /> Peer Discussion
-                </a>
-                <button className="btn btn-ghost flex-1 justify-center">
-                  <FileText size={18} /> Export PDF
-                </button>
-              </div>
+            <div className="flex gap-4 border-t 2px solid var(--border-heavy) pt-12">
+              <a href={selectedProject.githubUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary flex-1 justify-center">
+                <ExternalLink size={20} /> View Source Code
+              </a>
+              <a href={`${selectedProject.githubUrl}/issues`} target="_blank" rel="noopener noreferrer" className="btn btn-ghost flex-1 justify-center">
+                <Users size={20} /> Peer Review Thread
+              </a>
             </div>
           </div>
         </div>
       )}
 
-      <footer className="container py-24 border-t border-white/5 opacity-50 hover:opacity-100 transition-opacity">
+      {/* FOOTER: INDUSTRIAL SIGN-OFF */}
+      <footer className="container py-24 border-t border-border-heavy mt-auto text-center md:text-left">
         <div className="flex flex-col md:flex-row justify-between items-center gap-12">
-          <div className="flex items-center gap-3">
-            <Atom className="text-emerald-500" size={24} />
-            <span className="font-bold tracking-tighter">SMS</span>
+          <div className="flex items-center gap-4">
+            <Atom className="text-signal-green" size={40} />
+            <div>
+              <span className="text-xl font-black tracking-tighter block">SMS.RESEARCH</span>
+              <span className="mono text-[8px] text-text-dim uppercase tracking-[0.4em]">Established.2026</span>
+            </div>
           </div>
-          <p className="text-slate-500 text-sm mono">
-            &copy; {new Date().getFullYear()} Simulation & Modeling Society. // RESEARCH_LEVEL_01
+          <p className="mono text-[10px] text-text-dim uppercase tracking-widest">
+            &copy; {new Date().getFullYear()} Simulation & Modeling Society. All rights reserved.
           </p>
-          <div className="flex gap-8">
-            <a href="https://github.com/synapse-dot/mcsms.github.io" className="text-slate-500 hover:text-emerald-500">
-              <Globe size={20} />
-            </a>
+          <div className="flex gap-8 items-center">
+             <Globe className="text-text-dim hover:text-signal-green transition-colors" size={24} />
+             <span className="mono text-[10px] text-signal-green">ARCHIVE_ACTIVE</span>
           </div>
         </div>
       </footer>
