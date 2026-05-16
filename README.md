@@ -31,12 +31,15 @@ See [`docs/implementation-roadmap.md`](docs/implementation-roadmap.md) for a ful
 
 ## Local development
 <<<<<<< ours
+<<<<<<< ours
 
 ```bash
 npm install
 npm run dev
 ```
 =======
+=======
+>>>>>>> theirs
 
 ```bash
 cp .env.example .env
@@ -50,4 +53,7 @@ npm run dev
 - Create a `membership_requests` table with columns used by the app:
   `legal_name`, `class_grade`, `github_handle`, `research_focus`, `status`.
 - Add Row-Level Security policies allowing authenticated inserts for own requests.
+<<<<<<< ours
+>>>>>>> theirs
+=======
 >>>>>>> theirs
