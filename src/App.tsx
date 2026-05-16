@@ -331,10 +331,11 @@ function App() {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
                 const name = formData.get('name');
+                const studentClass = formData.get('class');
                 const github = formData.get('github');
                 const domain = formData.get('domain');
                 
-                const body = `### New Member Manifest\n\n**Name:** ${name}\n**GitHub:** @${github}\n**Interest Area:** ${domain}\n\n---\n*Sent via mcsms.github.io portal*`;
+                const body = `### New Member Manifest\n\n**Name:** ${name}\n**Class/Grade:** ${studentClass}\n**GitHub:** @${github}\n**Interest Area:** ${domain}\n\n---\n*Sent via mcsms.github.io portal*`;
                 const title = `Access Request: ${name} (@${github})`;
                 const url = `https://github.com/synapse-dot/mcsms.github.io/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
                 
@@ -346,9 +347,13 @@ function App() {
                     <input name="name" required type="text" className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none" placeholder="Felix Wayne" />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs mono text-slate-500">GITHUB_USER</label>
-                    <input name="github" required type="text" className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none" placeholder="synapse-dot" />
+                    <label className="text-xs mono text-slate-500">CLASS / GRADE</label>
+                    <input name="class" required type="text" className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none" placeholder="e.g. 10-C or Year 1" />
                   </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs mono text-slate-500">GITHUB_USER</label>
+                  <input name="github" required type="text" className="bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:border-cyan-400 outline-none" placeholder="synapse-dot" />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-xs mono text-slate-500">DOMAIN_OF_INTEREST</label>
