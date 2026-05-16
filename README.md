@@ -30,16 +30,6 @@ See [`docs/implementation-roadmap.md`](docs/implementation-roadmap.md) for a ful
 - Deployment: Vercel or Netlify (frontend) + Supabase (backend)
 
 ## Local development
-<<<<<<< ours
-<<<<<<< ours
-
-```bash
-npm install
-npm run dev
-```
-=======
-=======
->>>>>>> theirs
 
 ```bash
 cp .env.example .env
@@ -51,9 +41,30 @@ npm run dev
 
 - Configure Supabase project values in `.env`.
 - Create a `membership_requests` table with columns used by the app:
-  `legal_name`, `class_grade`, `github_handle`, `research_focus`, `status`.
-- Add Row-Level Security policies allowing authenticated inserts for own requests.
-<<<<<<< ours
->>>>>>> theirs
-=======
->>>>>>> theirs
+  `user_id`, `legal_name`, `class_grade`, `github_handle`, `research_focus`, `status`.
+- Add Row-Level Security policies allowing authenticated inserts for own requests (`auth.uid() = user_id`).
+
+Example SQL:
+
+```sql
+create table if not exists public.membership_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  legal_name text not null,
+  class_grade text not null,
+  github_handle text not null,
+  research_focus text not null,
+  status text not null default 'pending' check (status in ('pending','approved','rejected')),
+  created_at timestamptz not null default now()
+);
+
+alter table public.membership_requests enable row level security;
+
+create policy "insert own membership request"
+on public.membership_requests
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+```
+
+> Note: this repository uses Vite + React (not Next.js), so Next.js-specific files like `middleware.ts`/`page.tsx` are not used here.
