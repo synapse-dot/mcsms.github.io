@@ -195,7 +195,7 @@ function App() {
                   controls
                   preload="metadata"
                   playsInline
-                  src="/Simulation_Society_Intro.mp4"
+                  src="/mcsms.github.io/Simulation_Society_Intro.mp4"
                 >
                   Your browser does not support the intro video.
                 </video>
