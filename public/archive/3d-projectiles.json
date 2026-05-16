@@ -1,0 +1,12 @@
+{
+  "id": "3d-projectiles",
+  "title": "3D Projectile Visualizer",
+  "desc": "A comprehensive 3D simulation of kinematics in varying atmospheric conditions.",
+  "status": "stable",
+  "version": "1.0.0",
+  "objective": "Model and visualize projectile motion in 3D space with adjustable air resistance and gravity vectors.",
+  "observation": "High-velocity simulations reveal significant deviations from parabolic paths when drag coefficients are non-linear.",
+  "conclusion": "Real-time 3D visualization aids in the intuitive understanding of complex drag effects.",
+  "githubUrl": "https://github.com/synapse-dot/3DProjectiles",
+  "tech": ["Python", "VPython", "Git"]
+}
