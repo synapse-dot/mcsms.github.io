@@ -587,5 +587,3 @@ function App() {
 }
 
 export default App;
-EOF
-git add src/App.tsx && git commit -m "feat: integrate committee dashboard and UI auth panel" && git push
