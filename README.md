@@ -4,15 +4,21 @@ This repository contains the public website for the Simulation & Modeling Societ
 
 ## Current status
 
-The current frontend is a static/demo experience. A few flows are currently mocked:
+The current frontend now supports:
 
-- "Sign In" only toggles local React state.
-- "Join" opens a prefilled GitHub issue.
-- "Dashboard" is static content.
+- Supabase email/password sign in + sign up
+- Session token persistence in browser localStorage
+- Membership request submit to Supabase membership_requests
+
+Still pending:
+
+- committee review UI (approve/reject)
+- role-based dashboard data
+- DB-driven projects archive
 
 ## How to add real product features
 
-See [`docs/implementation-roadmap.md`](docs/implementation-roadmap.md) for a full production blueprint that maps directly to the club proposals:
+See [docs/implementation-roadmap.md](docs/implementation-roadmap.md) for a full production blueprint that maps directly to the club proposals:
 
 - real login & role-based access
 - actual membership joining/approval
@@ -39,10 +45,10 @@ npm run dev
 
 ### Backend setup required for real login/join
 
-- Configure Supabase project values in `.env`.
-- Create a `membership_requests` table with columns used by the app:
-  `user_id`, `legal_name`, `class_grade`, `github_handle`, `research_focus`, `status`.
-- Add Row-Level Security policies allowing authenticated inserts for own requests (`auth.uid() = user_id`).
+- Configure Supabase project values in .env.
+- Create a membership_requests table with columns used by the app:
+  user_id, legal_name, class_grade, github_handle, research_focus, status.
+- Add Row-Level Security policies allowing authenticated inserts for own requests (auth.uid() = user_id).
 
 Example SQL:
 
@@ -67,4 +73,53 @@ to authenticated
 with check (auth.uid() = user_id);
 ```
 
-> Note: this repository uses Vite + React (not Next.js), so Next.js-specific files like `middleware.ts`/`page.tsx` are not used here.
+> Note: this repository uses Vite + React (not Next.js), so Next.js-specific files like middleware.ts/page.tsx are not used here.
+
+## GitHub Pages + Supabase: production setup
+
+Yes — this app can work on GitHub Pages with sign-in and join submission.
+
+### 1) Add Supabase env vars as GitHub Actions secrets
+
+In GitHub repo settings, add:
+
+- VITE_SUPABASE_URL
+- VITE_SUPABASE_ANON_KEY
+
+The anon key is safe for frontend use (RLS must protect data).
+
+### 2) Add your GitHub Pages URL in Supabase Auth settings
+
+Supabase Dashboard → Authentication → URL Configuration:
+
+- Site URL: https://<your-username>.github.io/mcsms.github.io/
+- Additional redirect URLs:
+  - http://localhost:5173
+  - https://<your-username>.github.io/mcsms.github.io/
+
+Without this, hosted sign-in can fail due to redirect/CORS restrictions.
+
+### 3) Keep Vite base path
+
+This repo already has:
+
+- base: '/mcsms.github.io/'
+
+which is required for GitHub Pages project-site hosting.
+
+### 4) Deploy
+
+Use:
+
+```bash
+npm run deploy
+```
+
+This runs predeploy (build) then publishes dist/ via gh-pages.
+
+### 5) Verify in production
+
+- open the GitHub Pages URL
+- sign up/sign in
+- submit membership form
+- confirm row appears in Supabase table
