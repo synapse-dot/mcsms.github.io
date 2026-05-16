@@ -85,14 +85,13 @@ function App() {
   );
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<'home' | 'lab' | 'dashboard' | 'committee'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'lab' | 'dashboard' | 'committee' | 'signup'>('home');
   const [sessionToken, setSessionToken] = useState<string | null>(localStorage.getItem('sms_access_token'));
   const [memberName, setMemberName] = useState<string>('Researcher');
   const [memberId, setMemberId] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const [authPanelOpen, setAuthPanelOpen] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [joiningMessage, setJoiningMessage] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>(seedProjects);
@@ -108,6 +107,23 @@ function App() {
   const isLoggedIn = Boolean(sessionToken);
 
   useEffect(() => {
+    const applyRoute = () => {
+      setActiveTab(window.location.pathname === '/signup' ? 'signup' : 'home');
+    };
+    applyRoute();
+    window.addEventListener('popstate', applyRoute);
+    return () => window.removeEventListener('popstate', applyRoute);
+  }, []);
+
+  const navigate = (tab: 'home' | 'signup') => {
+    const targetPath = tab === 'signup' ? '/signup' : '/';
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, '', targetPath);
+    }
+    setActiveTab(tab);
+  };
+
+  useEffect(() => {
     if (!supabaseReady || !sessionToken) return;
     const tokenUserId = getUserIdFromToken(sessionToken);
     if (tokenUserId) setMemberId(tokenUserId);
@@ -116,7 +132,10 @@ function App() {
     })
       .then((r) => r.ok ? r.json() : null)
       .then((user) => {
-        if (user?.email) setMemberName(user.email.split('@')[0]);
+        if (user?.email) {
+          setMemberName(user.email.split('@')[0]);
+          setEmail(user.email);
+        }
         if (user?.id) setMemberId(user.id);
       })
       .catch(() => undefined);
@@ -253,7 +272,7 @@ function App() {
     if (token) {
       localStorage.setItem('sms_access_token', token);
       setSessionToken(token);
-      setAuthPanelOpen(false);
+      navigate('home');
       setAuthMessage(authMode === 'signin' ? 'Signed in successfully.' : 'Account created and signed in.');
     } else {
       setAuthMessage('Account created. Check your inbox if email confirmation is enabled.');
@@ -271,7 +290,7 @@ function App() {
       {/* PLATFORM NAVIGATION */}
       <nav className="platform-nav flex-center">
         <div className="platform-container flex-center justify-between w-full">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('home')}>
             <div className="bg-emerald-dim p-2 rounded-xl">
               <Atom className="text-emerald" size={28} />
             </div>
@@ -279,7 +298,7 @@ function App() {
           </div>
           
           <div className="flex gap-10 items-center hide-mobile">
-            <span onClick={() => setActiveTab('home')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'home' ? 'text-emerald' : 'text-dim'}`}>Index</span>
+            <span onClick={() => navigate('home')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'home' ? 'text-emerald' : 'text-dim'}`}>Index</span>
             <span onClick={() => setActiveTab('lab')} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'lab' ? 'text-emerald' : 'text-dim'}`}>Laboratory</span>
             {isLoggedIn && <span onClick={() => { setActiveTab('dashboard'); loadMySubmissions(); }} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'dashboard' ? 'text-emerald' : 'text-dim'}`}>Dashboard</span>}
             {isLoggedIn && committeeRole && <span onClick={() => { setActiveTab('committee'); loadPendingRequests(); }} className={`btn-link cursor-pointer uppercase text-xs font-bold tracking-widest ${activeTab === 'committee' ? 'text-emerald' : 'text-dim'}`}>Committee</span>}
@@ -288,8 +307,8 @@ function App() {
           <div className="flex gap-4">
             {!isLoggedIn ? (
               <div className="flex gap-2">
-                <button className="btn btn-secondary" onClick={() => { setAuthMode('signin'); setAuthPanelOpen(true); }}>Sign In</button>
-                <button className="btn-ghost" onClick={() => { setAuthMode('signup'); setAuthPanelOpen(true); }}>Register</button>
+                <button className="btn btn-secondary" onClick={() => { setAuthMode('signin'); navigate('signup'); }}>Sign In</button>
+                <button className="btn-ghost" onClick={() => { setAuthMode('signup'); navigate('signup'); }}>Register</button>
               </div>
             ) : (
               <div className="flex items-center gap-4">
@@ -389,6 +408,7 @@ function App() {
                     },
                     body: JSON.stringify({
                       user_id: memberId,
+                      email: email,
                       legal_name: fd.get('name'),
                       class_grade: fd.get('class'),
                       github_handle: fd.get('github'),
@@ -431,13 +451,13 @@ function App() {
         </main>
       )}
 
-      {authPanelOpen && !isLoggedIn && (
+      {activeTab === 'signup' && !isLoggedIn && (
         <section className="py-24 min-h-screen">
           <div className="platform-container" style={{ maxWidth: '680px' }}>
             <div className="lab-card p-8">
               <div className="flex justify-between items-center mb-6 gap-4">
                 <h2 className="text-4xl font-black tracking-tighter">{authMode === 'signin' ? 'Sign In' : 'Create Account'}</h2>
-                <button className="btn-ghost p-2 rounded-lg" onClick={() => setAuthPanelOpen(false)}><X size={18} /></button>
+                <button className="btn-ghost p-2 rounded-lg" onClick={() => navigate('home')}>Back</button>
               </div>
               <p className="text-muted mb-6">Use your account to access member and committee workflows.</p>
               <div className="flex flex-col gap-4">
@@ -536,9 +556,15 @@ function App() {
                     <div>
                       <h3 className="text-xl font-black">{request.legal_name}</h3>
                       <p className="text-sm text-muted">{request.class_grade} · @{request.github_handle}</p>
+                      {request.email && <p className="text-sm text-muted">{request.email}</p>}
                       <p className="text-sm text-dim mt-2">{request.research_focus}</p>
                     </div>
                     <div className="flex gap-3">
+                      {request.email && (
+                        <a className="btn-ghost px-3 py-2 rounded-lg" href={`mailto:${request.email}?subject=SMS Membership Application`}>
+                          Email Applicant
+                        </a>
+                      )}
                       <button className="btn btn-primary" onClick={() => handleRequestDecision(request.id, 'approved', request.user_id)}>Approve</button>
                       <button className="btn btn-secondary" onClick={() => handleRequestDecision(request.id, 'rejected', request.user_id)}>Reject</button>
                     </div>
