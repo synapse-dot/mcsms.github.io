@@ -92,6 +92,7 @@ function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authPanelOpen, setAuthPanelOpen] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [joiningMessage, setJoiningMessage] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>(seedProjects);
@@ -252,6 +253,7 @@ function App() {
     if (token) {
       localStorage.setItem('sms_access_token', token);
       setSessionToken(token);
+      setAuthPanelOpen(false);
       setAuthMessage(authMode === 'signin' ? 'Signed in successfully.' : 'Account created and signed in.');
     } else {
       setAuthMessage('Account created. Check your inbox if email confirmation is enabled.');
@@ -285,18 +287,9 @@ function App() {
 
           <div className="flex gap-4">
             {!isLoggedIn ? (
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-2">
-                  <input className="form-input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                  <input className="form-input" placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </div>
-                <div className="flex gap-2">
-                  <button className="btn btn-secondary" onClick={runAuth}>{authMode === 'signin' ? 'Sign In' : 'Sign Up'}</button>
-                  <button className="btn-ghost" onClick={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}>
-                    {authMode === 'signin' ? 'Create account' : 'Have account?'}
-                  </button>
-                </div>
-                {authMessage && <span className="mono text-[10px] text-muted">{authMessage}</span>}
+              <div className="flex gap-2">
+                <button className="btn btn-secondary" onClick={() => { setAuthMode('signin'); setAuthPanelOpen(true); }}>Sign In</button>
+                <button className="btn-ghost" onClick={() => { setAuthMode('signup'); setAuthPanelOpen(true); }}>Register</button>
               </div>
             ) : (
               <div className="flex items-center gap-4">
@@ -438,6 +431,29 @@ function App() {
         </main>
       )}
 
+      {authPanelOpen && !isLoggedIn && (
+        <section className="py-24 min-h-screen">
+          <div className="platform-container" style={{ maxWidth: '680px' }}>
+            <div className="lab-card p-8">
+              <div className="flex justify-between items-center mb-6 gap-4">
+                <h2 className="text-4xl font-black tracking-tighter">{authMode === 'signin' ? 'Sign In' : 'Create Account'}</h2>
+                <button className="btn-ghost p-2 rounded-lg" onClick={() => setAuthPanelOpen(false)}><X size={18} /></button>
+              </div>
+              <p className="text-muted mb-6">Use your account to access member and committee workflows.</p>
+              <div className="flex flex-col gap-4">
+                <input className="form-input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input className="form-input" placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <button className="btn btn-primary" onClick={runAuth}>{authMode === 'signin' ? 'Sign In' : 'Sign Up'}</button>
+                <button className="btn btn-secondary" onClick={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}>
+                  {authMode === 'signin' ? 'Need an account? Register' : 'Have an account? Sign in'}
+                </button>
+                {authMessage && <span className="mono text-[10px] text-muted">{authMessage}</span>}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {activeTab === 'lab' && (
         <section className="py-24 min-h-screen">
           <div className="platform-container">
@@ -571,3 +587,5 @@ function App() {
 }
 
 export default App;
+EOF
+git add src/App.tsx && git commit -m "feat: integrate committee dashboard and UI auth panel" && git push
