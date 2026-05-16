@@ -354,7 +354,7 @@ function App() {
             <span className="font-bold mono">SMS</span>
           </div>
           <p className="text-slate-500" style={{ fontSize: '0.875rem' }}>
-            &copy; {new Date().getFullYear()} Simulation & Modeling Society. Directed by Felix A. Wayne.
+            &copy; {new Date().getFullYear()} Maliyadeva College Simulation & Modeling Society.
           </p>
           <div className="flex gap-6">
             <a href="https://github.com/synapse-dot/mcsms.github.io" className="text-slate-500 hover:text-cyan-400">
